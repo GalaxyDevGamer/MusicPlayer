@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/libraryTab"
+        android:title="@string/library"
+        android:icon="@mipmap/baseline_library_music_black_24"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/albumTab"
+        android:title="@string/album"
+        android:icon="@mipmap/baseline_album_black_24"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/artistTab"
+        android:title="@string/artist"
+        android:icon="@mipmap/baseline_recent_actors_black_24"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/playlistTab"
+        android:title="@string/playlist"
+        android:icon="@mipmap/baseline_playlist_play_black_24"
+        app:showAsAction="ifRoom" />
+</menu>
