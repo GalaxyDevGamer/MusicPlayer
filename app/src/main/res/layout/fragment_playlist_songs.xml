@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/white"
     tools:context=".fragment.PlaylistSongsFragment">
 
     <LinearLayout
@@ -15,12 +16,15 @@
             android:id="@+id/playlist_cover"
             android:layout_width="match_parent"
             android:layout_height="200dp"
+            android:src="@mipmap/baseline_music_video_black_48"
             android:contentDescription="@string/thumbnail"/>
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/list"
+        <FrameLayout
+            android:id="@+id/content"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:layoutManager="android.support.v7.widget.LinearLayoutManager" />
+            android:layout_height="match_parent">
+
+            <include layout="@layout/fragment_song_list" />
+        </FrameLayout>
     </LinearLayout>
 </FrameLayout>

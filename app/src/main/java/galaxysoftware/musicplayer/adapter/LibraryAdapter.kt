@@ -13,11 +13,18 @@ import kotlinx.android.synthetic.main.fragment_song.view.*
 
 class LibraryAdapter(private val listener: SongSelectedListener) : RecyclerView.Adapter<LibraryAdapter.ViewHolder>() {
 
+    /**
+     * Called when ViewHolder is created.
+     * Define the layout using on ViewHolder
+     */
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.fragment_song, parent, false)
         return ViewHolder(view)
     }
 
+    /**
+     * Set the info to show
+     */
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = PlaylistHelper.getInstance().library[position]
         holder.thumbnailView.setImageBitmap(item.albumArt)
@@ -28,8 +35,15 @@ class LibraryAdapter(private val listener: SongSelectedListener) : RecyclerView.
         }
     }
 
+    /**
+     * Returning the item count in the list
+     */
     override fun getItemCount() = PlaylistHelper.getInstance().library.size
 
+    /**
+     * ViewHolder
+     * Defining the views using on List(RecyclerView)
+     */
     inner class ViewHolder(mView: View) : RecyclerView.ViewHolder(mView) {
         val thumbnailView: ImageView = mView.thumbnail
         val titleView: TextView = mView.title

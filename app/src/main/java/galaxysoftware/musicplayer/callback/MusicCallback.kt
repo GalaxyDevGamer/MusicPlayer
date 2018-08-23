@@ -1,5 +1,6 @@
 package galaxysoftware.musicplayer.callback
 
 interface MusicCallback {
-    fun onComplete()
+    fun errorPlayingSong()
+    fun onMusicStart()
 }

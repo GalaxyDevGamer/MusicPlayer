@@ -17,11 +17,18 @@ class PlaylistSongsAdapter(private val listener: SongSelectedListener, val name:
 
     var playlist = Realm.getDefaultInstance().where(Playlist::class.java).equalTo("name", name).findFirst()
 
+    /**
+     * Called when ViewHolder is created.
+     * Define the layout using on ViewHolder
+     */
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.fragment_song, parent, false)
         return ViewHolder(view)
     }
 
+    /**
+     * Set the info to show
+     */
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = playlist?.songs!![position]
         holder.thumbnail.setImageResource(R.mipmap.baseline_music_video_black_48)
@@ -32,13 +39,25 @@ class PlaylistSongsAdapter(private val listener: SongSelectedListener, val name:
         }
     }
 
-    override fun getItemCount(): Int = playlist?.songs!!.size
+    /**
+     * Returning the item count in the list
+     */
+    override fun getItemCount() = playlist?.songs!!.size
 
+    /**
+     * Reloading data
+     * notifyDataSetChanged() notifies to the Adapter that data is changed
+     * This is called from Fragment
+     */
     fun refresh() {
         playlist = Realm.getDefaultInstance().where(Playlist::class.java).equalTo("name", name).findFirst()
         notifyDataSetChanged()
     }
 
+    /**
+     * ViewHolder
+     * Defining the views using on List(RecyclerView)
+     */
     inner class ViewHolder(mView: View) : RecyclerView.ViewHolder(mView) {
         val thumbnail: ImageView = mView.thumbnail
         val title: TextView = mView.title

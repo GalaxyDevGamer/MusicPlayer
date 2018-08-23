@@ -5,10 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.media.MediaPlayer
 import android.os.Binder
-import android.util.Log
 import galaxysoftware.musicplayer.R
 import galaxysoftware.musicplayer.callback.MusicCallback
-import galaxysoftware.musicplayer.callback.PlayStateChangedListener
 import galaxysoftware.musicplayer.helper.PlaylistHelper
 
 class MusicService : Service() {
@@ -20,16 +18,30 @@ class MusicService : Service() {
 
     var repeat = 0
 
-    var playStateChangeListener: PlayStateChangedListener? = null
+    var musicCallback: MusicCallback? = null
 
+    /**
+     * Provide service as binder to control service
+     */
     inner class MusicServiceBinder : Binder() {
         fun getService() = this@MusicService
     }
 
+    /**
+     * Provide binder
+     */
     override fun onBind(intent: Intent?) = binder
 
+    /**
+     * Set Start mode. START_STICKY is the mode that enables service to continue working even if the app went background
+     */
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int) = START_STICKY
 
+    /**
+     * Called when Service is started
+     *
+     * Initializing MediaPlayer for playing music
+     */
     override fun onCreate() {
         super.onCreate()
         playlistHelper = PlaylistHelper.getInstance()
@@ -45,7 +57,11 @@ class MusicService : Service() {
         playlistHelper.shuffleEnabled = getSharedPreferences("Setting", Context.MODE_PRIVATE).getBoolean("shuffle", false)
     }
 
-
+    /**
+     * Play music by given position
+     *
+     * Also Notifies activity success or failure
+     */
     fun playMusic(position: Int) {
         player.stop()
         player.reset()
@@ -57,12 +73,30 @@ class MusicService : Service() {
             player.prepare()
             player.start()
         } catch (e: Exception) {
-            return
+            musicCallback?.errorPlayingSong()
         }
-        PlaylistHelper.getInstance().playingIndex = position
-        playStateChangeListener?.onMusicStart(position)
+        musicCallback?.onMusicStart()
     }
 
+    /**
+     * Play music by given path
+     *
+     * This is used on ExportPlayer, which is used as providing music play service to play from music file
+     */
+    fun playFromFile(path: String) {
+        try {
+            player.setDataSource(path)
+            player.prepare()
+            player.start()
+        } catch (e: Exception) {
+            musicCallback?.errorPlayingSong()
+        }
+        musicCallback?.onMusicStart()
+    }
+
+    /**
+     * Play or pause the player and returning the image by state
+     */
     fun playOrPause(): Int {
         return if (player.isPlaying) {
             player.pause()
@@ -73,15 +107,43 @@ class MusicService : Service() {
         }
     }
 
+    /**
+     * Start Player
+     */
     fun play() = player.start()
 
+    /**
+     * Pause Player
+     */
     fun pause() = player.pause()
 
+    /**
+     * Play next song if possible
+     */
     fun playNext() {
-        PlaylistHelper.getInstance().playingIndex += 1
-        playMusic(PlaylistHelper.getInstance().playingIndex)
+        if (repeat == 2) {
+            player.seekTo(0)
+            return
+        }
+        if (playlistHelper.isNextSongAvailable()) {
+            if (playlistHelper.shuffleEnabled) {
+                playlistHelper.shuffleIndex += 1
+                playMusic(playlistHelper.shuffleIndex)
+            } else {
+                playlistHelper.playingIndex += 1
+                playMusic(playlistHelper.playingIndex)
+            }
+        } else {
+            if (repeat == 1) {
+                playlistHelper.refreshPlaylist()
+                playMusic(0)
+            }
+        }
     }
 
+    /**
+     * Back to previous song if possible
+     */
     fun backToPrevious() {
         if (playlistHelper.getTitle(playlistHelper.playingIndex) != null) {
             if (player.currentPosition <= 500) {
@@ -106,6 +168,9 @@ class MusicService : Service() {
         }
     }
 
+    /**
+     * Change repeat mode state. Also returning the resource id depending on the state
+     */
     fun changeRepeatMode(): Int {
         getSharedPreferences("Setting", Context.MODE_PRIVATE).apply {
             edit().apply {
@@ -136,6 +201,9 @@ class MusicService : Service() {
         return R.mipmap.baseline_repeat_black_48
     }
 
+    /**
+     * Changing shuffle state. Also returning the resource id depending on the state
+     */
     fun shuffleClick(): Int {
         return if (playlistHelper.shuffleEnabled) {
             playlistHelper.shuffleEnabled = false
@@ -159,6 +227,9 @@ class MusicService : Service() {
         }
     }
 
+    /**
+     * Change volume
+     */
     fun changeVolumeTo(volume: Int) {
         this.volume = volume / 100f
         player.setVolume(this.volume, this.volume)
@@ -169,16 +240,15 @@ class MusicService : Service() {
         }
     }
 
+    /**
+     * Called when the music play completed
+     */
     fun playComplete() {
-        if (PlaylistHelper.getInstance().playingIndex < PlaylistHelper.getInstance().playlist.count() - 1) {
+        if (playlistHelper.isNextSongAvailable()) {
             playNext()
         } else {
             if (repeat == 1) {
-                if (playlistHelper.shuffleEnabled) {
-                    playlistHelper.shuffle()
-                } else {
-                    playlistHelper.playingIndex = 0
-                }
+                playlistHelper.refreshPlaylist()
                 playMusic(0)
             }
         }

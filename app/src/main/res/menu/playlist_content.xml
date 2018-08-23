@@ -8,8 +8,8 @@
         android:icon="@mipmap/baseline_delete_black_48"
         app:showAsAction="ifRoom" />
     <item
-        android:id="@+id/add"
+        android:id="@+id/edit_playlist"
         android:title="@string/edit"
-        android:icon="@mipmap/baseline_add_black_48"
+        android:icon="@mipmap/baseline_edit_black_48"
         app:showAsAction="ifRoom" />
 </menu>

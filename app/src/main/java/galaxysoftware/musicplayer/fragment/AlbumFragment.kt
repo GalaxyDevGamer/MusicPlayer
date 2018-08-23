@@ -5,36 +5,52 @@ import galaxysoftware.musicplayer.BaseFragment
 import galaxysoftware.musicplayer.R
 import galaxysoftware.musicplayer.adapter.AlbumAdapter
 import galaxysoftware.musicplayer.callback.ItemSelectedListener
+import galaxysoftware.musicplayer.helper.PlaylistHelper
+import galaxysoftware.musicplayer.realm.Playlist
 import galaxysoftware.musicplayer.type.FragmentType
 import galaxysoftware.musicplayer.type.NavigationType
-import kotlinx.android.synthetic.main.fragment_album_tab.*
+import kotlinx.android.synthetic.main.fragment_song_list.*
 
 class AlbumFragment : BaseFragment(), ItemSelectedListener {
 
+    /**
+     * Called when the Fragment is created
+     * Creating adapter to show on RecyclerView and set to it
+     */
     override fun initialize() {
-        album_list.apply {
+        list.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = AlbumAdapter(this@AlbumFragment)
         }
-        setHasOptionsMenu(true)
     }
 
-    override fun getLayoutId() = R.layout.fragment_album_tab
+    /**
+     * Set the layout using on this Fragment
+     */
+    override fun getLayoutId() = R.layout.fragment_song_list
 
     override fun updateFragment() {
 
     }
 
-    override fun onResume() {
-        super.onResume()
-        updateToolbar(NavigationType.NONE, getString(R.string.album), R.menu.empty)
+    /**
+     * Called when Artist is selected
+     * Setting the data for next fragment, then changing fragment.
+     */
+    override fun onItemSelected(index: Int) {
+        updateToolbar(FragmentType.ALBUM_LIST, NavigationType.BACK, PlaylistHelper.getInstance().albums[index].title!!, R.menu.empty)
+        requestChangeFragment(FragmentType.ALBUM_LIST, index)
     }
-    override fun onItemSelected(item: String) {
-        requestChangeFragment(FragmentType.ALBUM_LIST, item)
+
+    override fun onLongSelection(item: Playlist) {
+
     }
 
     companion object {
 
+        /**
+         * Creating instance of this Fragment
+         */
         @JvmStatic
         fun newInstance() = AlbumFragment()
     }

@@ -8,54 +8,64 @@ import android.widget.Toast
 import galaxysoftware.musicplayer.BaseFragment
 import galaxysoftware.musicplayer.R
 import galaxysoftware.musicplayer.adapter.AddToPlaylistAdapter
-import galaxysoftware.musicplayer.adapter.LibraryAdapter
-import galaxysoftware.musicplayer.callback.SongSelectedListener
+import galaxysoftware.musicplayer.helper.PlaylistHelper
 import galaxysoftware.musicplayer.realm.Playlist
+import galaxysoftware.musicplayer.type.FragmentType
 import galaxysoftware.musicplayer.type.NavigationType
 import io.realm.Realm
-import kotlinx.android.synthetic.main.fragment_library.*
+import kotlinx.android.synthetic.main.fragment_song_list.*
 
 class AddToPlaylistFragment : BaseFragment() {
 
     lateinit var adapter: AddToPlaylistAdapter
     lateinit var name: String
 
+    /**
+     * Called when Fragment is created
+     * Creating adapter to show on RecyclerView and set to it
+     */
     override fun initialize() {
-        name = arguments!!.getString(NAME)
+        name = arguments!!.getString(NAME)!!
         adapter = AddToPlaylistAdapter(name)
-        libraryList.apply {
+        list.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = this@AddToPlaylistFragment.adapter
         }
         setHasOptionsMenu(true)
     }
 
-    override fun getLayoutId() = R.layout.fragment_library
+    /**
+     * Set the layout using on this Fragment
+     */
+    override fun getLayoutId() = R.layout.fragment_song_list
 
     override fun updateFragment() {
 
     }
 
-    override fun onResume() {
-        super.onResume()
-        updateToolbar(NavigationType.BACK, getString(R.string.add_songs), R.menu.done)
-    }
-
+    /**
+     * Called when the menu icon is clicked (ANDROID'S CALLBACK
+     */
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        if (adapter.selectedSongs.count() > 0) {
-            val playlist = Playlist().apply {
-                name = this@AddToPlaylistFragment.name
-                songs = adapter.selectedSongs
+        when (item?.itemId) {
+            R.id.done -> {
+                if (adapter.selectedSongs.count() > 0) {
+                    val playlist = Playlist().apply {
+                        name = this@AddToPlaylistFragment.name
+                        songs = adapter.selectedSongs
+                    }
+                    Log.e("name", name + ": ")
+                    Log.e("songs", adapter.selectedSongs.toString() + "")
+                    Realm.getDefaultInstance().executeTransaction {
+                        it.insertOrUpdate(playlist)
+                    }
+                    PlaylistHelper.getInstance().uncheckAll()
+                    backFragment()
+                } else {
+                    //Show Snackbar
+                    Toast.makeText(context, "No song selected", Toast.LENGTH_LONG).show()
+                }
             }
-            Log.e("name", name+": ")
-            Log.e("songs", adapter.selectedSongs.toString()+"")
-            Realm.getDefaultInstance().executeTransaction {
-                it.insertOrUpdate(playlist)
-            }
-            backFragment()
-        } else {
-            //Show Snackbar
-            Toast.makeText(context, "No song selected", Toast.LENGTH_LONG).show()
         }
         return super.onOptionsItemSelected(item)
     }
@@ -63,6 +73,11 @@ class AddToPlaylistFragment : BaseFragment() {
     companion object {
         private const val NAME = "NAME"
 
+        /**
+         * Creating the instance of this Fragment
+         *
+         * receiving which Playlist is selected by name as String
+         */
         @JvmStatic
         fun newInstance(name: Any) = AddToPlaylistFragment().apply {
             arguments = Bundle().apply {

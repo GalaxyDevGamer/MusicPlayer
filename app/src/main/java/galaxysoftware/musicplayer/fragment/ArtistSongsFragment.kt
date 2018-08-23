@@ -6,47 +6,59 @@ import galaxysoftware.musicplayer.BaseFragment
 import galaxysoftware.musicplayer.R
 import galaxysoftware.musicplayer.adapter.ArtistSongsAdapter
 import galaxysoftware.musicplayer.callback.SongSelectedListener
+import galaxysoftware.musicplayer.helper.PlaylistHelper
+import galaxysoftware.musicplayer.type.FragmentType
 import galaxysoftware.musicplayer.type.NavigationType
+import kotlinx.android.synthetic.main.fragment_playlist_songs.*
 import kotlinx.android.synthetic.main.fragment_song_list.*
 
 class ArtistSongsFragment : BaseFragment(), SongSelectedListener {
 
-    lateinit var name: String
+    private var index = 0
 
+    /**
+     * Called when Fragment is created
+     * Creating adapter to show on RecyclerView and set to it
+     */
     override fun initialize() {
-        arguments?.let {
-            name = it.getString(ARG_COLUMN_COUNT)
-        }
+        index = arguments!!.getInt(ARG_COLUMN_COUNT)
         list.apply {
             layoutManager = LinearLayoutManager(context)
-            adapter = ArtistSongsAdapter(this@ArtistSongsFragment, name)
+            adapter = ArtistSongsAdapter(this@ArtistSongsFragment, PlaylistHelper.getInstance().artists[index].title!!)
         }
         setHasOptionsMenu(true)
+        playlist_cover.setImageBitmap(PlaylistHelper.getInstance().artists[index].thumbnail)
     }
 
+    /**
+     * Set the layout using on this Fragment
+     */
     override fun getLayoutId() = R.layout.fragment_playlist_songs
 
     override fun updateFragment() {
 
     }
 
-    override fun onResume() {
-        super.onResume()
-        updateToolbar(NavigationType.BACK, name, R.menu.empty)
-    }
-
+    /**
+     * Called when song selected to play music
+     */
     override fun onClick(position: Int) {
         playSelectedSong(position)
     }
 
     companion object {
         const val ARG_COLUMN_COUNT = "column-count"
+
+        /**
+         * Creating the instance of this Fragment
+         *
+         * receiving which Artist is selected by item as Int
+         */
         @JvmStatic
-        fun newInstance(item: Any) =
-                ArtistSongsFragment().apply {
-                    arguments = Bundle().apply {
-                        putString(ARG_COLUMN_COUNT, item as String)
-                    }
-                }
+        fun newInstance(item: Any) = ArtistSongsFragment().apply {
+            arguments = Bundle().apply {
+                putInt(ARG_COLUMN_COUNT, item as Int)
+            }
+        }
     }
 }

@@ -10,18 +10,17 @@ import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.support.v4.app.ActivityCompat
-import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import android.view.KeyEvent
 import android.view.Menu
 import android.view.View
+import android.widget.Toast
 import galaxysoftware.musicplayer.BaseFragment
 import galaxysoftware.musicplayer.ContextData
 import galaxysoftware.musicplayer.R
 import galaxysoftware.musicplayer.callback.ChangeFragmentListener
-import galaxysoftware.musicplayer.callback.PlayStateChangedListener
+import galaxysoftware.musicplayer.callback.MusicCallback
 import galaxysoftware.musicplayer.fragment.*
 import galaxysoftware.musicplayer.helper.FragmentMakeHelper
 import galaxysoftware.musicplayer.helper.PlaylistHelper
@@ -30,15 +29,10 @@ import galaxysoftware.musicplayer.type.FragmentType
 import galaxysoftware.musicplayer.type.NavigationType
 import galaxysoftware.musicplayer.type.TabType
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.small_controller.*
 
 
-class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnection, PlayStateChangedListener {
+class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnection, MusicCallback {
 
-    private val libraryTabHistory = ArrayList<BaseFragment>()
-    private val albumTabHistory = ArrayList<BaseFragment>()
-    private val artistTabHistory = ArrayList<BaseFragment>()
-    private val playlistTabHistory = ArrayList<BaseFragment>()
     private val rootHistory = ArrayList<BaseFragment>()
 
     private var currentTabType = TabType.LIBRARY
@@ -48,15 +42,17 @@ class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnect
     private val artistFragment = ArtistFragment.newInstance()
     private val playlistFragment = PlaylistFragment.newInstance()
 
-    private val navData = HashMap<TabType, NavigationType>()
-    private val titleData = HashMap<TabType, String>()
-    private val menuData = HashMap<TabType, Int>()
-    private lateinit var serviceIntent: Intent
+    private val fragmentTypeHistory = HashMap<TabType, ArrayList<FragmentType>>()
+    private val dataContainer = HashMap<FragmentType, Any>()
+    private val tabHistory = HashMap<TabType, ArrayList<BaseFragment>>()
     var musicService: MusicService? = null
 
     private val REQUEST_CODE_READ_EXTERNAL_STORAGE = 0x01
-    var initialized = false
 
+    /**
+     * Called when app is started. (ANDROID'S LIFECYCLE
+     * Check for the permission to make sure that READ_EXTERNAL_STORAGE is allowed for getting device files
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -76,6 +72,9 @@ class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnect
         }
     }
 
+    /**
+     * Called when permission dialog is pressed. (ANDROID'S CALLBACK WHEN REQUESTING PERMISSION
+     */
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_CODE_READ_EXTERNAL_STORAGE) {
@@ -90,75 +89,52 @@ class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnect
         }
     }
 
-    private fun loadSplashFragment() {
-        rootHistory.add(SplashFragment.newInstance())
-        supportFragmentManager.beginTransaction().apply {
-            add(R.id.root_container, rootHistory[0])
-            commit()
-        }
-    }
-
-    fun loadLibrary() {
-        supportFragmentManager.beginTransaction().apply {
-            remove(rootHistory[0])
-            commit()
-        }
-        rootHistory.remove(rootHistory[0])
-        fragmentTransaction(libraryFragment)
-        initialized = true
-    }
-
-    override fun onServiceConnected(component: ComponentName?, iBinder: IBinder?) {
-        val binder = iBinder as MusicService.MusicServiceBinder
-        musicService = binder.getService()
-        musicService?.playStateChangeListener = this@MainActivity
-        loadSplashFragment()
-        musicService?.player?.setOnCompletionListener {
-            musicService?.playComplete()
-            updatePlayer()
-            if (rootHistory.size > 0) {
-                val player = rootHistory[0] as PlayerFragment
-                player.updateSongInfo()
-            }
-        }
-    }
-
-    override fun onServiceDisconnected(p0: ComponentName?) {
-
-    }
-
-    override fun onMusicStart(position: Int) {
-        updatePlayer()
-        updatePlayStateButton()
-    }
-
+    /**
+     * Initialize the required components and setting data for each tabs
+     */
     private fun initVariable() {
         ContextData.getInstance().activity = this
         ContextData.getInstance().mainActivity = this@MainActivity
         ContextData.getInstance().applicationContext = applicationContext
-        setService()
 //        DialogHelper.init(this)
-        libraryTabHistory.add(libraryFragment)
-        albumTabHistory.add(albumFragment)
-        artistTabHistory.add(artistFragment)
-        playlistTabHistory.add(playlistFragment)
-        menuData[TabType.LIBRARY] = R.menu.empty
-        menuData[TabType.ALBUM] = R.menu.empty
-        menuData[TabType.ARTIST] = R.menu.empty
-        menuData[TabType.PLAYLIST] = R.menu.empty
+        tabHistory[TabType.LIBRARY] = ArrayList()
+        tabHistory[TabType.LIBRARY]?.add(libraryFragment)
+        tabHistory[TabType.ALBUM] = ArrayList()
+        tabHistory[TabType.ALBUM]?.add(albumFragment)
+        tabHistory[TabType.ARTIST] = ArrayList()
+        tabHistory[TabType.ARTIST]?.add(artistFragment)
+        tabHistory[TabType.PLAYLIST] = ArrayList()
+        tabHistory[TabType.PLAYLIST]?.add(playlistFragment)
+        fragmentTypeHistory[TabType.LIBRARY] = ArrayList()
+        fragmentTypeHistory[TabType.ALBUM] = ArrayList()
+        fragmentTypeHistory[TabType.ARTIST] = ArrayList()
+        fragmentTypeHistory[TabType.PLAYLIST] = ArrayList()
+        fragmentTypeHistory[TabType.LIBRARY]?.add(FragmentType.LIBRARY_TAB)
+        fragmentTypeHistory[TabType.ALBUM]?.add(FragmentType.ALBUM_TAB)
+        fragmentTypeHistory[TabType.ARTIST]?.add(FragmentType.ARTIST_TAB)
+        fragmentTypeHistory[TabType.PLAYLIST]?.add(FragmentType.PLAYLIST_TAB)
+        setTabData(FragmentType.LIBRARY_TAB, NavigationType.NONE, getString(R.string.library), R.menu.empty)
+        setTabData(FragmentType.ALBUM_TAB, NavigationType.NONE, getString(R.string.album), R.menu.empty)
+        setTabData(FragmentType.ARTIST_TAB, NavigationType.NONE, getString(R.string.artist), R.menu.empty)
+        setTabData(FragmentType.PLAYLIST_TAB, NavigationType.NONE, getString(R.string.playlist), R.menu.playlist_tab)
         setButton()
+        setService()
     }
 
-    private fun setService() {
-        serviceIntent = Intent(this, MusicService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(serviceIntent)
-        } else {
-            startService(serviceIntent)
-        }
-        bindService(serviceIntent, this, Context.BIND_AUTO_CREATE)
+    /**
+     * Set the data for each tab.
+     */
+    private fun setTabData(fragmentType: FragmentType, navigationType: NavigationType, title: String, menu: Int) {
+        val data = HashMap<String, Any>()
+        data["nav"] = navigationType
+        data["title"] = title
+        data["menu"] = menu
+        dataContainer[fragmentType] = data
     }
 
+    /**
+     * Set onClickListener for ButtonNavigationView and SmallController(It's on the layout file)
+     */
     private fun setButton() {
         play.setOnClickListener { play.setImageResource(musicService?.playOrPause()!!) }
         skip.setOnClickListener { musicService?.playNext() }
@@ -194,163 +170,267 @@ class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnect
         }
     }
 
-    fun playMusic(position: Int) {
-        if (PlaylistHelper.getInstance().shuffleEnabled)
-            PlaylistHelper.getInstance().shuffle()
-        musicService?.playMusic(position)
+    /**
+     * Set the service
+     * Careful on the method for setting service. It's changed from Android 8.0
+     */
+    private fun setService() {
+        val serviceIntent = Intent(this, MusicService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(serviceIntent)
+        } else {
+            startService(serviceIntent)
+        }
+        bindService(serviceIntent, this, Context.BIND_AUTO_CREATE)
     }
 
-    private fun updatePlayer() {
-        val helper = PlaylistHelper.getInstance()
-//        thumbnail.setImageBitmap(PlaylistHelper.getInstance().getAlbumArt(PlaylistHelper.getInstance().playingIndex))
-        thumbnail.setImageBitmap(if (helper.shuffleEnabled) helper.shuffleList[helper.playingIndex].albumArt else helper.playlist[helper.playingIndex].albumArt)
-        titleView.text = PlaylistHelper.getInstance().getTitle(PlaylistHelper.getInstance().playingIndex)
-    }
-
-    fun updatePlayStateButton() = if (musicService?.player?.isPlaying!!) play.setImageResource(R.mipmap.baseline_pause_circle_filled_black_48) else play.setImageResource(R.mipmap.baseline_play_circle_filled_black_48)
-
-    override fun onResume() {
-        super.onResume()
-        if (PlaylistHelper.getInstance().playlist.size > 0) {
-            Log.e("shuffle is ", PlaylistHelper.getInstance().shuffleEnabled.toString())
-            updatePlayStateButton()
+    /**
+     * Called when the service is connected (ANDROID'S CALLBACK WHEN USING SERVICE
+     */
+    override fun onServiceConnected(component: ComponentName?, iBinder: IBinder?) {
+        val binder = iBinder as MusicService.MusicServiceBinder
+        musicService = binder.getService()
+        musicService?.musicCallback = this@MainActivity
+        loadSplashFragment()
+        musicService?.player?.setOnCompletionListener {
+            musicService?.playComplete()
             updatePlayer()
+            if (rootHistory.size > 0) {
+                val player = rootHistory[0] as PlayerFragment
+                player.updateSongInfo()
+            }
         }
     }
 
+    /**
+     * Called when the service is disconnected (ANDROID'S CALLBACK WHEN USING SERVICE
+     */
+    override fun onServiceDisconnected(p0: ComponentName?) {
+
+    }
+
+    /**
+     * Loading the SplashFragment
+     * This is called from onServiceConnected()
+     */
+    private fun loadSplashFragment() {
+        rootHistory.add(SplashFragment.newInstance())
+        supportFragmentManager.beginTransaction().add(R.id.root_container, rootHistory[0]).commit()
+    }
+
+    /**
+     * Switch to Library Tab.
+     * Called from SplashFragment.
+     */
+    fun loadLibrary() {
+        supportFragmentManager.beginTransaction().apply {
+            remove(rootHistory[0])
+            replace(R.id.libraryTabContainer, tabHistory[TabType.LIBRARY]!![0])
+            replace(R.id.albumTabContainer, tabHistory[TabType.ALBUM]!![0])
+            replace(R.id.artistTabContainer, tabHistory[TabType.ARTIST]!![0])
+            replace(R.id.playlistTabContainer, tabHistory[TabType.PLAYLIST]!![0])
+            commit()
+        }
+        rootHistory.remove(rootHistory[0])
+        changeTab(TabType.LIBRARY)
+    }
+
+    /**
+     * Called when changing the tab.
+     * Called from callback on bottom_navigation
+     */
     private fun changeTab(tabType: TabType) {
         currentTabType = tabType
-        fragmentTransaction(getCurrentFragment())
         updateToolbar()
         libraryTabContainer.visibility = if (currentTabType == TabType.LIBRARY) View.VISIBLE else View.INVISIBLE
         albumTabContainer.visibility = if (currentTabType == TabType.ALBUM) View.VISIBLE else View.INVISIBLE
         artistTabContainer.visibility = if (currentTabType == TabType.ARTIST) View.VISIBLE else View.INVISIBLE
         playlistTabContainer.visibility = if (currentTabType == TabType.PLAYLIST) View.VISIBLE else View.INVISIBLE
-        invalidateOptionsMenu()
     }
 
+    /**
+     * Playing selected music.
+     * Called when the music on the list is selected.
+     */
+    fun playMusic(position: Int) {
+        var index = position
+        PlaylistHelper.getInstance().playingIndex = position
+        if (PlaylistHelper.getInstance().shuffleEnabled) {
+            PlaylistHelper.getInstance().shuffle()
+            index = 0
+        }
+        musicService?.playMusic(index)
+    }
+
+    /**
+     * Called when music is started.
+     * Called from musicService
+     */
+    override fun onMusicStart() {
+        updatePlayer()
+        updatePlayStateButton()
+    }
+
+    /**
+     * Called if the error occurred when try to play music
+     */
+    override fun errorPlayingSong() {
+        Toast.makeText(this, R.string.error_loading, Toast.LENGTH_SHORT).show()
+        musicService!!.playNext()
+    }
+
+    /**
+     * Updating the song information
+     */
+    private fun updatePlayer() {
+        sc_thumbnail.setImageBitmap(PlaylistHelper.getInstance().getAlbumArt())
+        titleView.text = PlaylistHelper.getInstance().getTitle()
+    }
+
+    /**
+     * Updating the button image by play state of MediaPlayer
+     */
+    private fun updatePlayStateButton() = if (musicService?.player?.isPlaying!!) play.setImageResource(R.mipmap.baseline_pause_circle_filled_black_48) else play.setImageResource(R.mipmap.baseline_play_circle_filled_black_48)
+
+    /**
+     * Called when the app is returned (ANDROID'S DEFAULT LIFECYCLE
+     */
+    override fun onResume() {
+        super.onResume()
+        if (PlaylistHelper.getInstance().playlist.size > 0) {
+            updatePlayStateButton()
+            updatePlayer()
+        }
+    }
+
+    /**
+     * Updating the menu. (ANDROID'S CALLBACK
+     * Called if invalidateOptionsMenu() is called.
+     */
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         menu?.clear()
-        menuInflater?.inflate(menuData[currentTabType]!!, menu)
+        val data = dataContainer[fragmentTypeHistory[currentTabType]!![fragmentTypeHistory[currentTabType]!!.size - 1]] as HashMap<String, Any>
+        menuInflater.inflate(data["menu"] as Int, menu)
         return super.onPrepareOptionsMenu(menu)
     }
 
+    /**
+     * Called from outside of the MainActivity for changing fragment
+     */
     override fun onChangeFragment(fragmentType: FragmentType, any: Any) = changeFragment(fragmentType, any)
 
+    /**
+     * Changing the fragment
+     */
     private fun changeFragment(fragmentType: FragmentType, any: Any) {
         val fragment = FragmentMakeHelper.makeFragment(fragmentType, any)
-        when (currentTabType) {
-            TabType.LIBRARY -> {
-                libraryTabHistory.add(fragment)
-            }
-            TabType.ALBUM -> {
-                albumTabHistory.add(fragment)
-            }
-            TabType.ARTIST -> {
-                artistTabHistory.add(fragment)
-            }
-            TabType.PLAYLIST -> {
-                playlistTabHistory.add(fragment)
-            }
-        }
-        fragmentTransaction(fragment)
-        invalidateOptionsMenu()
+        tabHistory[currentTabType]?.add(fragment)
+        replaceFragment(getCurrentFragment())
     }
 
-    private fun getCurrentFragment(): Fragment {
-        return when (currentTabType) {
-            TabType.LIBRARY -> libraryTabHistory[libraryTabHistory.size - 1]
-            TabType.ALBUM -> albumTabHistory[albumTabHistory.size - 1]
-            TabType.ARTIST -> artistTabHistory[artistTabHistory.size - 1]
-            TabType.PLAYLIST -> playlistTabHistory[playlistTabHistory.size - 1]
-        }
-    }
+    /**
+     * Return current Fragment on current tab
+     */
+    private fun getCurrentFragment() = tabHistory[currentTabType]!![tabHistory[currentTabType]!!.size - 1]
 
+    /**
+     * Back Fragment
+     * Called when back key pressed or navigation icon(On the Toolbar) is pressed
+     */
     fun backFragment() {
-        when (currentTabType) {
-            TabType.LIBRARY -> libraryTabHistory.removeAt(libraryTabHistory.size - 1)
-            TabType.ALBUM -> {
-                if (albumTabHistory.size > 1) {
-                    albumTabHistory.removeAt(albumTabHistory.size - 1)
-                } else
-                    changeTab(TabType.LIBRARY)
-            }
-            TabType.ARTIST -> {
-                if (artistTabHistory.size > 1) {
-                    artistTabHistory.removeAt(artistTabHistory.size - 1)
-                } else
-                    changeTab(TabType.LIBRARY)
-            }
-            TabType.PLAYLIST -> {
-                if (playlistTabHistory.size > 1) {
-                    playlistTabHistory.removeAt(playlistTabHistory.size - 1)
-                } else
-                    changeTab(TabType.LIBRARY)
-            }
-        }
-        fragmentTransaction(getCurrentFragment())
-        invalidateOptionsMenu()
+        tabHistory[currentTabType]!!.removeAt(tabHistory[currentTabType]!!.size - 1)
+        fragmentTypeHistory[currentTabType]!!.removeAt(fragmentTypeHistory[currentTabType]!!.size - 1)
+        replaceFragment(getCurrentFragment())
+        updateToolbar()
     }
 
-    private fun fragmentTransaction(fragment: Fragment) {
-        val transaction = supportFragmentManager.beginTransaction()
+    /**
+     * Replacing Fragment
+     */
+    private fun replaceFragment(fragment: BaseFragment) = supportFragmentManager.beginTransaction().apply {
         when (currentTabType) {
-            TabType.LIBRARY -> transaction.replace(R.id.libraryTabContainer, fragment)
-            TabType.ALBUM -> transaction.replace(R.id.albumTabContainer, fragment)
-            TabType.ARTIST -> transaction.replace(R.id.artistTabContainer, fragment)
-            TabType.PLAYLIST -> transaction.replace(R.id.playlistTabContainer, fragment)
+            TabType.LIBRARY -> replace(R.id.libraryTabContainer, fragment)
+            TabType.ALBUM -> replace(R.id.albumTabContainer, fragment)
+            TabType.ARTIST -> replace(R.id.artistTabContainer, fragment)
+            TabType.PLAYLIST -> replace(R.id.playlistTabContainer, fragment)
         }
-        transaction.commit()
+        commit()
     }
 
+    /**
+     * Called when back key is pressed (ANDROID'S CALLBACK
+     */
     override fun onBackPressed() {
         if (rootHistory.size > 0) {
             closePLayerLayout()
             return
         }
-        if (currentTabType == TabType.LIBRARY && libraryTabHistory[libraryTabHistory.size - 1] == libraryFragment) {
+        if (currentTabType == TabType.LIBRARY && getCurrentFragment() == libraryFragment) {
             finish()
+            return
+        }
+        if (currentTabType != TabType.LIBRARY && tabHistory[currentTabType]!!.size == 1) {
+            changeTab(TabType.LIBRARY)
             return
         }
         backFragment()
     }
 
+    /**
+     * Updating Toolbar
+     * Data is Stored on dataContainer
+     *
+     * *Icon: BACK or CLOSE
+     * *Title: Title
+     * invalidateOptionsMenu(): Update Menu
+     */
     private fun updateToolbar() {
-        when (navData[currentTabType]) {
+        val data = dataContainer[fragmentTypeHistory[currentTabType]!![fragmentTypeHistory[currentTabType]!!.size - 1]] as HashMap<String, Any>
+        when (data["nav"]) {
             NavigationType.BACK -> {
                 toolbar.navigationIcon = ContextCompat.getDrawable(this, R.mipmap.baseline_keyboard_arrow_left_black_24)
                 toolbar.setNavigationOnClickListener { backFragment() }
             }
             NavigationType.CLOSE -> {
                 toolbar.navigationIcon = ContextCompat.getDrawable(this, R.mipmap.baseline_clear_black_48)
-                toolbar.setNavigationOnClickListener {
-                    closePLayerLayout()
-                }
+                toolbar.setNavigationOnClickListener { closePLayerLayout() }
             }
             else -> {
                 toolbar.navigationIcon = null
                 toolbar.setNavigationOnClickListener(null)
             }
         }
-        toolbar.title = titleData[currentTabType]
+        toolbar.title = data["title"] as String
+        invalidateOptionsMenu()
     }
 
-    fun setData(navigationType: NavigationType, title: String, menu: Int) {
-        navData[currentTabType] = navigationType
-        titleData[currentTabType] = title
-        menuData[currentTabType] = menu
+    /**
+     * Setting the data when changing Fragment
+     * Data is stored on dataContainer by fragmentType
+     */
+    fun setData(fragmentType: FragmentType, navigationType: NavigationType, title: String, menu: Int) {
+        val data = HashMap<String, Any>()
+        data["nav"] = navigationType
+        data["title"] = title
+        data["menu"] = menu
+        dataContainer[fragmentType] = data
+        this.fragmentTypeHistory[currentTabType]?.add(fragmentType)
         updateToolbar()
     }
 
-    fun closePLayerLayout() {
-        supportFragmentManager.beginTransaction().apply {
-            remove(rootHistory[0])
-            commit()
-        }
+    /**
+     * Close Player layout
+     */
+    private fun closePLayerLayout() {
+        supportFragmentManager.beginTransaction().remove(rootHistory[0]).commit()
         rootHistory.removeAt(0)
-        setData(NavigationType.NONE, getString(R.string.library), R.menu.empty)
+        setData(FragmentType.PLAYLIST_TAB, NavigationType.NONE, getString(R.string.library), R.menu.empty)
     }
 
+    /**
+     * Called if any KEY is pressed (ANDROID'S CALLBACK
+     * Using for detecting volume key press
+     */
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         when (keyCode) {
             KeyEvent.KEYCODE_VOLUME_DOWN -> {
@@ -383,5 +463,14 @@ class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnect
             }
         }
         return super.onKeyDown(keyCode, event)
+    }
+
+    /**
+     * Called when app is finishing (ANDROID'S LIFECYCLE
+     */
+    override fun onDestroy() {
+        super.onDestroy()
+        if (musicService != null)
+            unbindService(this)
     }
 }

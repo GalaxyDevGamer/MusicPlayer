@@ -18,11 +18,18 @@ class AlbumSongsAdapter(private val listener: SongSelectedListener, album: Strin
 
     private val songList = PlaylistHelper.getInstance().makePlaylist(ContextData.getInstance().applicationContext?.contentResolver?.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Array(1) {"*"}, "album ='$album'", null, "title")!!)
 
+    /**
+     * Called when ViewHolder is created.
+     * Define the layout using on ViewHolder
+     */
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.fragment_song, parent, false)
         return ViewHolder(view)
     }
 
+    /**
+     * Set the info to show
+     */
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = songList[position]
         holder.thumbnail.setImageBitmap(item.albumArt)
@@ -33,8 +40,15 @@ class AlbumSongsAdapter(private val listener: SongSelectedListener, album: Strin
         }
     }
 
+    /**
+     * Returning the item count in the list
+     */
     override fun getItemCount(): Int = songList.size
 
+    /**
+     * ViewHolder
+     * Defining the views using on List(RecyclerView)
+     */
     inner class ViewHolder(mView: View) : RecyclerView.ViewHolder(mView) {
         val thumbnail: ImageView = mView.thumbnail
         val title: TextView = mView.title

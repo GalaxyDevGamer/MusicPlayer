@@ -1,13 +1,17 @@
 package galaxysoftware.musicplayer.fragment
 
 import android.content.Context
+import android.graphics.Color
 import android.os.Handler
+import android.support.design.widget.Snackbar
 import android.support.v4.app.Fragment
 import android.widget.SeekBar
 import galaxysoftware.musicplayer.BaseFragment
 import galaxysoftware.musicplayer.R
+import galaxysoftware.musicplayer.callback.MusicCallback
 import galaxysoftware.musicplayer.helper.PlaylistHelper
 import galaxysoftware.musicplayer.service.MusicService
+import galaxysoftware.musicplayer.type.FragmentType
 import galaxysoftware.musicplayer.type.NavigationType
 import kotlinx.android.synthetic.main.playerlayout.*
 
@@ -16,11 +20,14 @@ import kotlinx.android.synthetic.main.playerlayout.*
  * Use the [PlayerFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class PlayerFragment : BaseFragment() {
+class PlayerFragment : BaseFragment(), MusicCallback {
 
     lateinit var musicService: MusicService
     private lateinit var showPlayTime: Handler
 
+    /**
+     * Initializing Views
+     */
     override fun initialize() {
         musicService = getMainActivity().musicService!!
         playtimeBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -60,8 +67,16 @@ class PlayerFragment : BaseFragment() {
             }
         }
         skip.setOnClickListener {
-            musicService.playNext()
-            updateSongInfo()
+            if (PlaylistHelper.getInstance().isNextSongAvailable() || musicService.repeat == 1) {
+                musicService.playNext()
+                updateSongInfo()
+            } else {
+                Snackbar.make(view!!, R.string.last_song, Snackbar.LENGTH_LONG).apply {
+                    view.setBackgroundColor(Color.RED)
+                    setActionTextColor(Color.WHITE)
+                    show()
+                }
+            }
         }
         shuffle.apply {
             setImageResource(if (PlaylistHelper.getInstance().shuffleEnabled) R.mipmap.baseline_shuffle_black_48_red else R.mipmap.baseline_shuffle_black_48)
@@ -84,31 +99,63 @@ class PlayerFragment : BaseFragment() {
 
     }
 
+    override fun onMusicStart() {
+
+    }
+
+    /**
+     * Show error SnackBar when error occurred
+     */
+    override fun errorPlayingSong() {
+        Snackbar.make(view!!, R.string.error_loading, Snackbar.LENGTH_LONG).apply {
+            view.setBackgroundColor(Color.RED)
+            setActionTextColor(Color.WHITE)
+            show()
+        }
+        musicService.playNext()
+    }
+
+    /**
+     * Update song information
+     */
     fun updateSongInfo() {
         if (!musicService.player.isPlaying) {
             play_pause.setImageResource(R.mipmap.baseline_play_circle_filled_black_48)
             return
         }
-        song_title.text = PlaylistHelper.getInstance().getTitle(PlaylistHelper.getInstance().playingIndex)
-        thumbnail.setImageBitmap(PlaylistHelper.getInstance().getAlbumArt(PlaylistHelper.getInstance().playingIndex))
+        song_title.text = PlaylistHelper.getInstance().getTitle()
+        thumbnail.setImageBitmap(PlaylistHelper.getInstance().getAlbumArt())
         duration.text = getTimeString(musicService.player.duration.toLong())
         playtime.text = getTimeString(musicService.player.currentPosition.toLong())
         playtimeBar.max = musicService.player.duration
         playtimeBar.progress = musicService.player.currentPosition
     }
 
+    /**
+     * Called when app is resuming
+     *
+     * Start counting to show time
+     */
     override fun onResume() {
         super.onResume()
-        updateToolbar(NavigationType.CLOSE, "", R.menu.empty)
+        updateToolbar(FragmentType.PLAYER, NavigationType.CLOSE, "", R.menu.empty)
         updateSongInfo()
         startCounting()
     }
 
+    /**
+     * Called when app is pausing
+     *
+     * Stop counting when app is pausing
+     */
     override fun onPause() {
         super.onPause()
         showPlayTime.removeCallbacksAndMessages(null)
     }
 
+    /**
+     * Start counting and showing the time using Handler
+     */
     private fun startCounting() {
         if (musicService.player.isPlaying){
             showPlayTime.postDelayed(object : Runnable{
@@ -121,6 +168,9 @@ class PlayerFragment : BaseFragment() {
         }
     }
 
+    /**
+     * Converting Long time to String Time
+     */
     private fun getTimeString(millis: Long): String {
         val buf = StringBuffer()
         if (millis >= 6000000) {
@@ -136,6 +186,9 @@ class PlayerFragment : BaseFragment() {
         return buf.toString()
     }
 
+    /**
+     * Updating volume
+     */
     fun updateVolume(volume: Int) { volumeBar.progress = volume }
 
     companion object {

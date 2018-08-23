@@ -7,11 +7,12 @@
 
     <ImageView
         android:id="@+id/thumbnail"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_margin="10dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:layout_gravity="center_vertical"
-        android:contentDescription="@string/thumbnail" />
+        android:layout_margin="5dp"
+        android:contentDescription="@string/thumbnail"
+        android:src="@mipmap/baseline_music_video_black_48" />
 
     <TextView
         android:id="@+id/titleView"
@@ -19,17 +20,17 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         android:layout_marginStart="5dp"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <ImageButton
         android:id="@+id/play"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
+        android:layout_marginStart="20dp"
         android:background="#FFFFFF"
         android:contentDescription="@string/play"
-        android:layout_marginStart="20dp"
         android:src="@mipmap/baseline_play_circle_filled_black_48" />
 
     <ImageButton

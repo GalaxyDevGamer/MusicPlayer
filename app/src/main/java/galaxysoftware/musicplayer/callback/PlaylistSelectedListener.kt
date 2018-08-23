@@ -2,7 +2,7 @@ package galaxysoftware.musicplayer.callback
 
 import galaxysoftware.musicplayer.realm.Playlist
 
-interface ItemSelectedListener {
-    fun onItemSelected(index: Int)
+interface PlaylistSelectedListener {
+    fun onPlaylistSelected(name: String)
     fun onLongSelection(item: Playlist)
 }

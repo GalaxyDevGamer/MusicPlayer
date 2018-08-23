@@ -1,27 +1,24 @@
 package galaxysoftware.musicplayer.helper
 
-import android.content.Context
 import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.os.Bundle
 import android.provider.MediaStore
-import android.support.v4.app.LoaderManager
-import android.support.v4.content.AsyncTaskLoader
-import android.support.v4.content.Loader
-import android.util.Log
 import galaxysoftware.musicplayer.ContextData
 import galaxysoftware.musicplayer.R
-import galaxysoftware.musicplayer.data.Album
-import galaxysoftware.musicplayer.data.Artist
-import galaxysoftware.musicplayer.data.LibraryWithSelection
-import galaxysoftware.musicplayer.data.Song
+import galaxysoftware.musicplayer.model.Album
+import galaxysoftware.musicplayer.model.Artist
+import galaxysoftware.musicplayer.model.LibraryWithSelection
+import galaxysoftware.musicplayer.model.Song
 import galaxysoftware.musicplayer.realm.Songs
 import io.realm.RealmList
 import java.util.*
 import kotlin.collections.ArrayList
 
-class PlaylistHelper: LoaderManager.LoaderCallbacks<Boolean> {
+/**
+ * A Singleton Class Managing and Providing Song datas by Arraylist
+ */
+class PlaylistHelper {
     var playlist = ArrayList<Song>()
     val library = ArrayList<Song>()
     val albums = ArrayList<Album>()
@@ -33,8 +30,11 @@ class PlaylistHelper: LoaderManager.LoaderCallbacks<Boolean> {
     var shuffleEnabled = false
     var shuffleIndex = 0
 
+    /**
+     * Initializing arrays
+     * Called from SplashFragment
+     */
     fun initialize() {
-        Log.e("place", "initialize")
         loadLibrary()
         loadAlbums()
         loadArtists()
@@ -42,21 +42,9 @@ class PlaylistHelper: LoaderManager.LoaderCallbacks<Boolean> {
             shuffle()
     }
 
-
-    fun setPlaylist(cursor: Cursor) {
-        playlist.clear()
-        if (cursor.moveToFirst()) {
-            val song = Song()
-            song.title = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE))
-            song.artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST))
-            song.album = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM))
-            song.albumArt = getCoverArt(cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)))
-            song.path = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA))
-            playlist.add(song)
-        }
-        cursor.close()
-    }
-
+    /**
+     * Loading all songs on Library
+     */
     private fun loadLibrary() {
         val libraryCursor = ContextData.getInstance().applicationContext?.contentResolver?.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Array(1) { "*" }, MediaStore.Audio.Media.IS_MUSIC + " != 0", null, "title")
         if (libraryCursor!!.moveToFirst()) {
@@ -69,17 +57,23 @@ class PlaylistHelper: LoaderManager.LoaderCallbacks<Boolean> {
                 song.path = libraryCursor.getString(libraryCursor.getColumnIndex(MediaStore.Audio.Media.DATA))
                 library.add(song)
                 val selectionLibrary = LibraryWithSelection()
-                selectionLibrary.title = libraryCursor.getString(libraryCursor.getColumnIndex(MediaStore.Audio.Media.TITLE))
-                selectionLibrary.artist = libraryCursor.getString(libraryCursor.getColumnIndex(MediaStore.Audio.Media.ARTIST))
-                selectionLibrary.album = libraryCursor.getString(libraryCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM))
-                selectionLibrary.albumArt = libraryCursor.getLong(libraryCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID))
-                selectionLibrary.path = libraryCursor.getString(libraryCursor.getColumnIndex(MediaStore.Audio.Media.DATA))
+                val songs = Songs()
+                songs.title = libraryCursor.getString(libraryCursor.getColumnIndex(MediaStore.Audio.Media.TITLE))
+                songs.artist = libraryCursor.getString(libraryCursor.getColumnIndex(MediaStore.Audio.Media.ARTIST))
+                songs.album = libraryCursor.getString(libraryCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM))
+                songs.albumArt = libraryCursor.getLong(libraryCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID))
+                songs.path = libraryCursor.getString(libraryCursor.getColumnIndex(MediaStore.Audio.Media.DATA))
+                selectionLibrary.song = songs
                 libraryWithSelection.add(selectionLibrary)
             } while (libraryCursor.moveToNext())
         }
         libraryCursor.close()
+        playlist = library
     }
 
+    /**
+     * Loading Album data
+     */
     private fun loadAlbums() {
         val albumCursor = ContextData.getInstance().applicationContext?.contentResolver?.query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, Array(1) {"*"}, null, null, null)
         if (albumCursor!!.moveToFirst()) {
@@ -97,6 +91,9 @@ class PlaylistHelper: LoaderManager.LoaderCallbacks<Boolean> {
         albumCursor.close()
     }
 
+    /**
+     * Loading Artist data
+     */
     private fun loadArtists() {
         val artistCursor = ContextData.getInstance().applicationContext?.contentResolver?.query(MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI, Array(1) {MediaStore.Audio.Artists.ARTIST}, null, null, null)
         if (artistCursor!!.moveToFirst()) {
@@ -110,6 +107,9 @@ class PlaylistHelper: LoaderManager.LoaderCallbacks<Boolean> {
         artistCursor.close()
     }
 
+    /**
+     * Making playlist array by given cursor
+     */
     fun makePlaylist(cursor: Cursor): ArrayList<Song> {
         val playlist = ArrayList<Song>()
         if (cursor.moveToFirst()) {
@@ -127,6 +127,9 @@ class PlaylistHelper: LoaderManager.LoaderCallbacks<Boolean> {
         return playlist
     }
 
+    /**
+     * Making playlist from songs stored on Realm (RealmList for the playlist song
+     */
     fun makePlaylistFromRealm(list: RealmList<Songs>): ArrayList<Song> {
         val playlist = ArrayList<Song>()
         list.forEach {
@@ -141,12 +144,22 @@ class PlaylistHelper: LoaderManager.LoaderCallbacks<Boolean> {
         return playlist
     }
 
+
     fun getSongPath(position: Int) = if (shuffleEnabled) shuffleList[position].path else playlist[position].path
 
     fun getTitle(position: Int) = if (shuffleEnabled) shuffleList[position].title else playlist[position].title
 
     fun getAlbumArt(position: Int) = if (shuffleEnabled) shuffleList[position].albumArt else playlist[position].albumArt
 
+    fun getSongPath() = if (shuffleEnabled) shuffleList[shuffleIndex].path else playlist[playingIndex].path
+
+    fun getTitle() = if (shuffleEnabled) shuffleList[shuffleIndex].title else playlist[playingIndex].title
+
+    fun getAlbumArt() = if (shuffleEnabled) shuffleList[shuffleIndex].albumArt else playlist[playingIndex].albumArt
+
+    /**
+     * Provide CovertArt
+     */
     fun getCoverArt(albumId: Long): Bitmap {
         val albumCursor = ContextData.getInstance().applicationContext!!.contentResolver.query(
                 MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
@@ -168,14 +181,43 @@ class PlaylistHelper: LoaderManager.LoaderCallbacks<Boolean> {
         }
     }
 
+    /**
+     * Return whether next song available
+     */
+    fun isNextSongAvailable(): Boolean {
+        if (shuffleEnabled) {
+            if (shuffleIndex < shuffleList.size - 1) {
+                return true
+            }
+        } else {
+            if (playingIndex < playlist.size - 1) {
+                return true
+            }
+        }
+        return false
+    }
+
+    /**
+     * Refresh playlist
+     *
+     * Reset the playing index to zero
+     * or
+     * Remake shuffle()
+     */
+    fun refreshPlaylist() = if (shuffleEnabled) shuffle() else playingIndex = 0
+
+    /**
+     * Create Shuffle List
+     *
+     * Clone from the current playlist, randomly choose the song and add to the shuffle list.
+     */
     fun shuffle() {
         shuffleList.clear()
         shuffleIndex = 0
         val clone = playlist.clone() as ArrayList<Song>
         clone.removeAt(playingIndex)
-        Log.e("clone count", clone.count().toString())
+        shuffleList.add(playlist[playingIndex])
         do {
-            Log.e("clone size", clone.size.toString())
             val randomSong = if (clone.size == 1) {
                 clone[0]
             } else {
@@ -192,33 +234,19 @@ class PlaylistHelper: LoaderManager.LoaderCallbacks<Boolean> {
         } while (clone.size > 0)
     }
 
-    override fun onCreateLoader(p0: Int, p1: Bundle?): Loader<Boolean> = ShuffleMaker(library, ContextData.getInstance().applicationContext!!)
-
-    override fun onLoadFinished(p0: Loader<Boolean>, p1: Boolean?) {
-
-    }
-
-    override fun onLoaderReset(p0: Loader<Boolean>) {
-
-    }
-
-    class ShuffleMaker(library: ArrayList<Song>, context: Context): AsyncTaskLoader<Boolean>(context) {
-        override fun onStartLoading() {
-            super.onStartLoading()
-            forceLoad()
-        }
-        override fun loadInBackground(): Boolean? {
-            PlaylistHelper.getInstance().library.clone()
-            return true
-        }
-
-        override fun deliverResult(data: Boolean?) {
-            super.deliverResult(data)
-
+    /**
+     * Uncheck all songs checked on AddToPlaylist
+     */
+    fun uncheckAll() {
+        libraryWithSelection.forEach {
+            it.isSelected = false
         }
     }
 
     companion object {
+        /**
+         * Singleton
+         */
         private val instance = PlaylistHelper()
 
         fun getInstance() = instance

@@ -9,26 +9,40 @@ import android.widget.TextView
 import galaxysoftware.musicplayer.R
 import galaxysoftware.musicplayer.callback.ItemSelectedListener
 import galaxysoftware.musicplayer.helper.PlaylistHelper
-import kotlinx.android.synthetic.main.fragment_album.view.*
+import kotlinx.android.synthetic.main.fragment_song.view.*
 
 class ArtistAdapter(private val listener: ItemSelectedListener) : RecyclerView.Adapter<ArtistAdapter.ViewHolder>() {
 
+    /**
+     * Called when ViewHolder is created.
+     * Define the layout using on ViewHolder
+     */
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.fragment_song, parent, false)
         return ViewHolder(view)
     }
 
+    /**
+     * Set the info to show
+     */
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = PlaylistHelper.getInstance().artists[position]
         holder.thumbnail.setImageBitmap(item.thumbnail)
         holder.title.text = item.title
         holder.itemView.setOnClickListener {
-            listener.onItemSelected(item.title!!)
+            listener.onItemSelected(position)
         }
     }
 
+    /**
+     * Returning the item count in the list
+     */
     override fun getItemCount() = PlaylistHelper.getInstance().artists.size
 
+    /**
+     * ViewHolder
+     * Defining the views using on List(RecyclerView)
+     */
     inner class ViewHolder(mView: View) : RecyclerView.ViewHolder(mView) {
         val thumbnail: ImageView = mView.thumbnail
         val title: TextView = mView.title

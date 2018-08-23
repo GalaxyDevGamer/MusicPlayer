@@ -19,23 +19,32 @@ import galaxysoftware.musicplayer.helper.PlaylistHelper
  */
 class SplashFragment : BaseFragment(), LoaderManager.LoaderCallbacks<String> {
 
+    /**
+     * Called when Fragment is created
+     * Creating adapter to show on RecyclerView and set to it
+     */
     override fun initialize() {
         val arg = Bundle()
         arg.putString("data", "")
         Log.e("status", "initialize")
     }
 
+    /**
+     * Set the layout using on this Fragment
+     */
     override fun getLayoutId() = R.layout.fragment_splash
 
     override fun updateFragment() {
 
     }
 
+    /**
+     * Called when Fragment resumed. Initializing background task.
+     */
     override fun onResume() {
         super.onResume()
         val arg = Bundle()
         arg.putString("data", "")
-        Log.e("status", "onResume")
         loaderManager.initLoader(1, arg, this)
     }
 
