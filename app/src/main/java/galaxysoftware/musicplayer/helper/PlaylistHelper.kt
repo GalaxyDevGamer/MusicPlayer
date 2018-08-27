@@ -13,6 +13,10 @@ import galaxysoftware.musicplayer.model.Song
 import galaxysoftware.musicplayer.realm.Playlist
 import galaxysoftware.musicplayer.realm.Songs
 import io.realm.RealmList
+import kotlinx.coroutines.experimental.CommonPool
+import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.launch
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -24,14 +28,13 @@ class PlaylistHelper {
     val library = ArrayList<Song>()
     val albums = ArrayList<Album>()
     val artists = ArrayList<Artist>()
-    val custom_playlist = ArrayList<Playlist>()
     val libraryWithSelection = ArrayList<LibraryWithSelection>()
     val shuffleList = ArrayList<Song>()
 
     var playingIndex = 0
     var shuffleEnabled = false
     var shuffleIndex = 0
-    
+
     var context = ContextData.instance.applicationContext
 
     var contentResolver = context?.contentResolver
@@ -40,14 +43,14 @@ class PlaylistHelper {
      * Initializing arrays
      * Called from SplashFragment
      */
-    fun initialize() {
+    fun initialize() = async(CommonPool) {
         loadLibrary()
         loadAlbums()
         loadArtists()
-        loadPlaylist()
         if (shuffleEnabled)
             shuffle()
     }
+
     /**
      * Loading all songs on Library
      */
@@ -81,7 +84,7 @@ class PlaylistHelper {
      * Loading Album data
      */
     private fun loadAlbums() {
-        val albumCursor = contentResolver?.query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, Array(1) {"*"}, null, null, null)
+        val albumCursor = contentResolver?.query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, Array(1) { "*" }, null, null, null)
         if (albumCursor!!.moveToFirst()) {
             do {
                 val album = Album()
@@ -101,7 +104,7 @@ class PlaylistHelper {
      * Loading Artist data
      */
     private fun loadArtists() {
-        val artistCursor = contentResolver?.query(MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI, Array(1) {MediaStore.Audio.Artists.ARTIST}, null, null, null)
+        val artistCursor = contentResolver?.query(MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI, Array(1) { MediaStore.Audio.Artists.ARTIST }, null, null, null)
         if (artistCursor!!.moveToFirst()) {
             do {
                 val artist = Artist()
@@ -111,10 +114,6 @@ class PlaylistHelper {
             } while (artistCursor.moveToNext())
         }
         artistCursor.close()
-    }
-
-    private fun loadPlaylist() {
-        custom_playlist.addAll(Playlist.names())
     }
 
     /**
@@ -143,7 +142,7 @@ class PlaylistHelper {
     fun makePlaylistFromRealm(list: RealmList<Songs>): ArrayList<Song> {
         val playlist = ArrayList<Song>()
         list.forEach {
-            val song = Song().apply { 
+            val song = Song().apply {
                 title = it.title
                 album = it.album
                 artist = it.artist

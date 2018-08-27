@@ -29,6 +29,9 @@ import galaxysoftware.musicplayer.type.FragmentType
 import galaxysoftware.musicplayer.type.NavigationType
 import galaxysoftware.musicplayer.type.TabType
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.launch
 
 
 class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnection, MusicCallback {

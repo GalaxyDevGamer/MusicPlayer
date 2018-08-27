@@ -3,7 +3,7 @@ package galaxysoftware.musicplayer.fragment
 import android.support.v4.app.Fragment
 import galaxysoftware.musicplayer.BaseFragment
 import galaxysoftware.musicplayer.R
-import galaxysoftware.musicplayer.model.AsyncModel
+import galaxysoftware.musicplayer.helper.PlaylistHelper
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 
@@ -21,7 +21,7 @@ class SplashFragment : BaseFragment(){
      */
     override fun initialize() {
         launch(UI) {
-            AsyncModel.initializeLibrary().await()
+            PlaylistHelper.instance.initialize().await()
             getMainActivity().loadLibrary()
         }
     }
