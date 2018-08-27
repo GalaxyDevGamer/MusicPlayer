@@ -43,7 +43,6 @@ class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnect
     private val playlistFragment = PlaylistFragment.newInstance()
 
     private val fragmentTypeHistory = HashMap<TabType, ArrayList<FragmentType>>()
-    private val dataContainer = HashMap<FragmentType, Any>()
     private val tabHistory = HashMap<TabType, ArrayList<BaseFragment>>()
     var musicService: MusicService? = null
 
@@ -93,9 +92,8 @@ class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnect
      * Initialize the required components and setting data for each tabs
      */
     private fun initVariable() {
-        ContextData.getInstance().activity = this
-        ContextData.getInstance().mainActivity = this@MainActivity
-        ContextData.getInstance().applicationContext = applicationContext
+        ContextData.instance.mainActivity = this@MainActivity
+        ContextData.instance.applicationContext = applicationContext
 //        DialogHelper.init(this)
         tabHistory[TabType.LIBRARY] = ArrayList()
         tabHistory[TabType.LIBRARY]?.add(libraryFragment)
@@ -113,23 +111,8 @@ class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnect
         fragmentTypeHistory[TabType.ALBUM]?.add(FragmentType.ALBUM_TAB)
         fragmentTypeHistory[TabType.ARTIST]?.add(FragmentType.ARTIST_TAB)
         fragmentTypeHistory[TabType.PLAYLIST]?.add(FragmentType.PLAYLIST_TAB)
-        setTabData(FragmentType.LIBRARY_TAB, NavigationType.NONE, getString(R.string.library), R.menu.empty)
-        setTabData(FragmentType.ALBUM_TAB, NavigationType.NONE, getString(R.string.album), R.menu.empty)
-        setTabData(FragmentType.ARTIST_TAB, NavigationType.NONE, getString(R.string.artist), R.menu.empty)
-        setTabData(FragmentType.PLAYLIST_TAB, NavigationType.NONE, getString(R.string.playlist), R.menu.playlist_tab)
         setButton()
         setService()
-    }
-
-    /**
-     * Set the data for each tab.
-     */
-    private fun setTabData(fragmentType: FragmentType, navigationType: NavigationType, title: String, menu: Int) {
-        val data = HashMap<String, Any>()
-        data["nav"] = navigationType
-        data["title"] = title
-        data["menu"] = menu
-        dataContainer[fragmentType] = data
     }
 
     /**
@@ -160,7 +143,7 @@ class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnect
             false
         }
         small_controller.setOnClickListener {
-            if (PlaylistHelper.getInstance().playlist.size > 0) {
+            if (PlaylistHelper.instance.playlist.size > 0) {
                 rootHistory.add(PlayerFragment.newInstance())
                 supportFragmentManager.beginTransaction().apply {
                     add(R.id.root_container, rootHistory[0])
@@ -254,9 +237,9 @@ class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnect
      */
     fun playMusic(position: Int) {
         var index = position
-        PlaylistHelper.getInstance().playingIndex = position
-        if (PlaylistHelper.getInstance().shuffleEnabled) {
-            PlaylistHelper.getInstance().shuffle()
+        PlaylistHelper.instance.playingIndex = position
+        if (PlaylistHelper.instance.shuffleEnabled) {
+            PlaylistHelper.instance.shuffle()
             index = 0
         }
         musicService?.playMusic(index)
@@ -283,8 +266,8 @@ class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnect
      * Updating the song information
      */
     private fun updatePlayer() {
-        sc_thumbnail.setImageBitmap(PlaylistHelper.getInstance().getAlbumArt())
-        titleView.text = PlaylistHelper.getInstance().getTitle()
+        sc_thumbnail.setImageBitmap(PlaylistHelper.instance.getAlbumArt())
+        titleView.text = PlaylistHelper.instance.getTitle()
     }
 
     /**
@@ -297,7 +280,7 @@ class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnect
      */
     override fun onResume() {
         super.onResume()
-        if (PlaylistHelper.getInstance().playlist.size > 0) {
+        if (PlaylistHelper.instance.playlist.size > 0) {
             updatePlayStateButton()
             updatePlayer()
         }
@@ -309,29 +292,31 @@ class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnect
      */
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         menu?.clear()
-        val data = dataContainer[fragmentTypeHistory[currentTabType]!![fragmentTypeHistory[currentTabType]!!.size - 1]] as HashMap<String, Any>
-        menuInflater.inflate(data["menu"] as Int, menu)
+        menuInflater.inflate(currentFragmentType().menu, menu)
         return super.onPrepareOptionsMenu(menu)
     }
 
     /**
      * Called from outside of the MainActivity for changing fragment
      */
-    override fun onChangeFragment(fragmentType: FragmentType, any: Any) = changeFragment(fragmentType, any)
-
-    /**
-     * Changing the fragment
-     */
-    private fun changeFragment(fragmentType: FragmentType, any: Any) {
+    override fun onChangeFragment(fragmentType: FragmentType, any: Any, title: String) {
         val fragment = FragmentMakeHelper.makeFragment(fragmentType, any)
+        fragmentType.title = title
         tabHistory[currentTabType]?.add(fragment)
+        fragmentTypeHistory[currentTabType]?.add(fragmentType)
         replaceFragment(getCurrentFragment())
+        updateToolbar()
     }
 
     /**
      * Return current Fragment on current tab
      */
     private fun getCurrentFragment() = tabHistory[currentTabType]!![tabHistory[currentTabType]!!.size - 1]
+
+    /**
+     * Returns current FragmentType based on each tabs
+     */
+    fun currentFragmentType() = fragmentTypeHistory[currentTabType]!![fragmentTypeHistory[currentTabType]!!.size - 1]
 
     /**
      * Back Fragment
@@ -385,8 +370,7 @@ class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnect
      * invalidateOptionsMenu(): Update Menu
      */
     private fun updateToolbar() {
-        val data = dataContainer[fragmentTypeHistory[currentTabType]!![fragmentTypeHistory[currentTabType]!!.size - 1]] as HashMap<String, Any>
-        when (data["nav"]) {
+        when (currentFragmentType().navigation) {
             NavigationType.BACK -> {
                 toolbar.navigationIcon = ContextCompat.getDrawable(this, R.mipmap.baseline_keyboard_arrow_left_black_24)
                 toolbar.setNavigationOnClickListener { backFragment() }
@@ -400,22 +384,8 @@ class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnect
                 toolbar.setNavigationOnClickListener(null)
             }
         }
-        toolbar.title = data["title"] as String
+        toolbar.title = currentFragmentType().title
         invalidateOptionsMenu()
-    }
-
-    /**
-     * Setting the data when changing Fragment
-     * Data is stored on dataContainer by fragmentType
-     */
-    fun setData(fragmentType: FragmentType, navigationType: NavigationType, title: String, menu: Int) {
-        val data = HashMap<String, Any>()
-        data["nav"] = navigationType
-        data["title"] = title
-        data["menu"] = menu
-        dataContainer[fragmentType] = data
-        this.fragmentTypeHistory[currentTabType]?.add(fragmentType)
-        updateToolbar()
     }
 
     /**
@@ -424,7 +394,7 @@ class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnect
     private fun closePLayerLayout() {
         supportFragmentManager.beginTransaction().remove(rootHistory[0]).commit()
         rootHistory.removeAt(0)
-        setData(FragmentType.PLAYLIST_TAB, NavigationType.NONE, getString(R.string.library), R.menu.empty)
+        updateToolbar()
     }
 
     /**

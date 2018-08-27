@@ -17,7 +17,7 @@ import kotlinx.android.synthetic.main.fragment_song.view.*
 
 class PlaylistAdapter(private val listener: PlaylistSelectedListener) : RecyclerView.Adapter<PlaylistAdapter.ViewHolder>() {
 
-    var playlist: RealmResults<Playlist> = Realm.getDefaultInstance().where(Playlist::class.java).findAll()
+    var playlist = Playlist.names()
 
     /**
      * Called when ViewHolder is created.
@@ -55,7 +55,7 @@ class PlaylistAdapter(private val listener: PlaylistSelectedListener) : Recycler
      * This is called from Fragment
      */
     fun refresh() {
-        playlist = Realm.getDefaultInstance().where(Playlist::class.java).findAll()
+        playlist = Playlist.names()
         notifyDataSetChanged()
     }
 

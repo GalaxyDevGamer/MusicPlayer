@@ -19,10 +19,10 @@ import kotlinx.android.synthetic.main.fragment_song_with_selection.view.*
 class AddToPlaylistAdapter(val name: String) : RecyclerView.Adapter<AddToPlaylistAdapter.ViewHolder>() {
 
     val selectedSongs = RealmList<Songs>()
-    var songList = PlaylistHelper.getInstance().libraryWithSelection.clone() as ArrayList<LibraryWithSelection>
+    var songList = PlaylistHelper.instance.libraryWithSelection.clone() as ArrayList<LibraryWithSelection>
 
     init {
-        PlaylistHelper.getInstance().uncheckAll()
+        PlaylistHelper.instance.uncheckAll()
     }
 
     /**
@@ -39,7 +39,7 @@ class AddToPlaylistAdapter(val name: String) : RecyclerView.Adapter<AddToPlaylis
      */
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = songList[position]
-        holder.thumbnailView.setImageBitmap(PlaylistHelper.getInstance().getCoverArt(item.song!!.albumArt))
+        holder.thumbnailView.setImageBitmap(PlaylistHelper.instance.getCoverArt(item.song!!.albumArt))
         holder.titleView.text = item.song!!.title
         if (Realm.getDefaultInstance().where(Playlist::class.java).equalTo("name", name).and().equalTo("songs.path", item.song!!.path).count() > 0) {
             holder.checkMark.visibility = View.VISIBLE

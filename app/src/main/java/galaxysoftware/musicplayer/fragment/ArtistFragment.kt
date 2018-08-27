@@ -8,7 +8,6 @@ import galaxysoftware.musicplayer.callback.ItemSelectedListener
 import galaxysoftware.musicplayer.helper.PlaylistHelper
 import galaxysoftware.musicplayer.realm.Playlist
 import galaxysoftware.musicplayer.type.FragmentType
-import galaxysoftware.musicplayer.type.NavigationType
 import kotlinx.android.synthetic.main.fragment_song_list.*
 
 class ArtistFragment : BaseFragment(), ItemSelectedListener {
@@ -37,17 +36,13 @@ class ArtistFragment : BaseFragment(), ItemSelectedListener {
      * Called when Artist is selected
      * Setting the data for next fragment, then changing fragment.
      */
-    override fun onItemSelected(index: Int) {
-        updateToolbar(FragmentType.ARTIST_LIST, NavigationType.BACK, PlaylistHelper.getInstance().artists[index].title!!, R.menu.empty)
-        requestChangeFragment(FragmentType.ARTIST_LIST, index)
-    }
+    override fun onItemSelected(index: Int) = requestChangeFragment(FragmentType.ARTIST_LIST, index, PlaylistHelper.instance.artists[index].title!!)
 
     override fun onLongSelection(item: Playlist) {
 
     }
 
     companion object {
-
         /**
          * Creating instance of this Fragment
          */

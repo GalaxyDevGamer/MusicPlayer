@@ -29,6 +29,10 @@ class PlaylistHelper {
     var playingIndex = 0
     var shuffleEnabled = false
     var shuffleIndex = 0
+    
+    var context = ContextData.instance.applicationContext
+
+    var contentResolver = context?.contentResolver
 
     /**
      * Initializing arrays
@@ -41,12 +45,11 @@ class PlaylistHelper {
         if (shuffleEnabled)
             shuffle()
     }
-
     /**
      * Loading all songs on Library
      */
     private fun loadLibrary() {
-        val libraryCursor = ContextData.getInstance().applicationContext?.contentResolver?.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Array(1) { "*" }, MediaStore.Audio.Media.IS_MUSIC + " != 0", null, "title")
+        val libraryCursor = contentResolver?.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Array(1) { "*" }, MediaStore.Audio.Media.IS_MUSIC + " != 0", null, "title")
         if (libraryCursor!!.moveToFirst()) {
             do {
                 val song = Song()
@@ -75,7 +78,7 @@ class PlaylistHelper {
      * Loading Album data
      */
     private fun loadAlbums() {
-        val albumCursor = ContextData.getInstance().applicationContext?.contentResolver?.query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, Array(1) {"*"}, null, null, null)
+        val albumCursor = contentResolver?.query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, Array(1) {"*"}, null, null, null)
         if (albumCursor!!.moveToFirst()) {
             do {
                 val album = Album()
@@ -83,7 +86,7 @@ class PlaylistHelper {
                 try {
                     album.thumbnail = getCoverArt(albumCursor.getLong(albumCursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ID)))
                 } catch (e: IllegalStateException) {
-                    album.thumbnail = BitmapFactory.decodeResource(ContextData.getInstance().applicationContext?.resources, R.mipmap.baseline_music_video_black_48)
+                    album.thumbnail = BitmapFactory.decodeResource(context?.resources, R.mipmap.baseline_music_video_black_48)
                 }
                 albums.add(album)
             } while (albumCursor.moveToNext())
@@ -95,12 +98,12 @@ class PlaylistHelper {
      * Loading Artist data
      */
     private fun loadArtists() {
-        val artistCursor = ContextData.getInstance().applicationContext?.contentResolver?.query(MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI, Array(1) {MediaStore.Audio.Artists.ARTIST}, null, null, null)
+        val artistCursor = contentResolver?.query(MediaStore.Audio.Artists.EXTERNAL_CONTENT_URI, Array(1) {MediaStore.Audio.Artists.ARTIST}, null, null, null)
         if (artistCursor!!.moveToFirst()) {
             do {
                 val artist = Artist()
                 artist.title = artistCursor.getString(artistCursor.getColumnIndex(MediaStore.Audio.Artists.ARTIST))
-                artist.thumbnail = BitmapFactory.decodeResource(ContextData.getInstance().applicationContext?.resources, R.mipmap.baseline_music_video_black_48)
+                artist.thumbnail = BitmapFactory.decodeResource(context?.resources, R.mipmap.baseline_music_video_black_48)
                 artists.add(artist)
             } while (artistCursor.moveToNext())
         }
@@ -133,12 +136,13 @@ class PlaylistHelper {
     fun makePlaylistFromRealm(list: RealmList<Songs>): ArrayList<Song> {
         val playlist = ArrayList<Song>()
         list.forEach {
-            val song = Song()
-            song.title = it.title
-            song.album = it.album
-            song.artist = it.artist
-            song.albumArt = getCoverArt(it.albumArt)
-            song.path = it.path
+            val song = Song().apply { 
+                title = it.title
+                album = it.album
+                artist = it.artist
+                albumArt = getCoverArt(it.albumArt)
+                path = it.path
+            }
             playlist.add(song)
         }
         return playlist
@@ -161,7 +165,7 @@ class PlaylistHelper {
      * Provide CovertArt
      */
     fun getCoverArt(albumId: Long): Bitmap {
-        val albumCursor = ContextData.getInstance().applicationContext!!.contentResolver.query(
+        val albumCursor = contentResolver?.query(
                 MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
                 arrayOf(MediaStore.Audio.Albums.ALBUM_ART),
                 MediaStore.Audio.Albums._ID + " = ?",
@@ -169,7 +173,7 @@ class PlaylistHelper {
                 null
         )
         var result: String? = null
-        if (albumCursor.moveToFirst()) {
+        if (albumCursor!!.moveToFirst()) {
             result = albumCursor.getString(0)
         }
         albumCursor.close()
@@ -177,7 +181,7 @@ class PlaylistHelper {
         return if (BitmapFactory.decodeFile(result) != null) {
             BitmapFactory.decodeFile(result)
         } else {
-            BitmapFactory.decodeResource(ContextData.getInstance().applicationContext?.resources, R.mipmap.baseline_music_video_black_48)
+            BitmapFactory.decodeResource(context?.resources, R.mipmap.baseline_music_video_black_48)
         }
     }
 
@@ -247,8 +251,6 @@ class PlaylistHelper {
         /**
          * Singleton
          */
-        private val instance = PlaylistHelper()
-
-        fun getInstance() = instance
+        val instance = PlaylistHelper()
     }
 }

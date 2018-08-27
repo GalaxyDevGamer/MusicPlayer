@@ -3,18 +3,15 @@ package galaxysoftware.musicplayer.fragment
 import android.app.Dialog
 import android.support.v7.app.AlertDialog
 import android.support.v7.widget.LinearLayoutManager
-import android.util.Log
 import android.view.MenuItem
 import android.view.Window
 import android.widget.EditText
 import galaxysoftware.musicplayer.BaseFragment
 import galaxysoftware.musicplayer.R
 import galaxysoftware.musicplayer.adapter.PlaylistAdapter
-import galaxysoftware.musicplayer.callback.ItemSelectedListener
 import galaxysoftware.musicplayer.callback.PlaylistSelectedListener
 import galaxysoftware.musicplayer.realm.Playlist
 import galaxysoftware.musicplayer.type.FragmentType
-import galaxysoftware.musicplayer.type.NavigationType
 import io.realm.Realm
 import kotlinx.android.synthetic.main.fragment_song_list.*
 import kotlinx.android.synthetic.main.long_press_menu.*
@@ -73,10 +70,7 @@ class PlaylistFragment : BaseFragment(), PlaylistSelectedListener {
      * Called when the playlist is selected
      * Setting the data for next fragment, then changing fragment.
      */
-    override fun onPlaylistSelected(name: String) {
-        updateToolbar(FragmentType.PLAYLIST, NavigationType.BACK, name, R.menu.playlist_content)
-        requestChangeFragment(FragmentType.PLAYLIST, name)
-    }
+    override fun onPlaylistSelected(name: String) = requestChangeFragment(FragmentType.PLAYLIST, name, name)
 
     /**
      * Called when the menu icon is clicked (ANDROID'S CALLBACK
@@ -102,8 +96,7 @@ class PlaylistFragment : BaseFragment(), PlaylistSelectedListener {
                                 it.insertOrUpdate(playlist)
                             }
                             adapter.notifyDataSetChanged()
-                            updateToolbar(FragmentType.PLAYLIST, NavigationType.BACK, name.text.toString(), R.menu.playlist_content)
-                            requestChangeFragment(FragmentType.PLAYLIST, name.text.toString())
+                            requestChangeFragment(FragmentType.PLAYLIST, name.text.toString(), name.text.toString())
                         }
                     }
                     setNegativeButton("Cancel", null)

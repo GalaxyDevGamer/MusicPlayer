@@ -12,9 +12,9 @@ import galaxysoftware.musicplayer.helper.PlaylistHelper
 class MusicService : Service() {
     private val binder = MusicServiceBinder()
     lateinit var player: MediaPlayer
-    lateinit var playlistHelper: PlaylistHelper
+    private lateinit var playlistHelper: PlaylistHelper
 
-    var volume: Float = 0f
+    private var volume: Float = 0f
 
     var repeat = 0
 
@@ -44,7 +44,7 @@ class MusicService : Service() {
      */
     override fun onCreate() {
         super.onCreate()
-        playlistHelper = PlaylistHelper.getInstance()
+        playlistHelper = PlaylistHelper.instance
         player = MediaPlayer()
         volume = getSharedPreferences("Setting", Context.MODE_PRIVATE).getInt("volume", 50) / 100f
         repeat = getSharedPreferences("Setting", Context.MODE_PRIVATE).getInt("repeat", 0)
@@ -66,7 +66,7 @@ class MusicService : Service() {
         player.stop()
         player.reset()
         try {
-            player.setDataSource(PlaylistHelper.getInstance().getSongPath(position))
+            player.setDataSource(PlaylistHelper.instance.getSongPath(position))
             if (repeat == 2) {
                 player.isLooping = true
             }

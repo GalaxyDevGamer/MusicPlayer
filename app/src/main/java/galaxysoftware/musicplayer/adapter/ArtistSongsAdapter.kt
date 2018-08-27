@@ -16,7 +16,7 @@ import kotlinx.android.synthetic.main.fragment_song.view.*
 
 class ArtistSongsAdapter(private val listener: SongSelectedListener, artist: String) : RecyclerView.Adapter<ArtistSongsAdapter.ViewHolder>() {
 
-    private val songList = PlaylistHelper.getInstance().makePlaylist(ContextData.getInstance().applicationContext?.contentResolver?.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Array(1) {"*"}, "artist ='$artist'", null, "title")!!)
+    private val songList = PlaylistHelper.instance.makePlaylist(PlaylistHelper.instance.contentResolver?.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Array(1) {"*"}, "artist ='$artist'", null, "title")!!)
 
     /**
      * Called when ViewHolder is created.
@@ -35,7 +35,7 @@ class ArtistSongsAdapter(private val listener: SongSelectedListener, artist: Str
         holder.thumbnail.setImageBitmap(item.albumArt)
         holder.title.text = item.title
         holder.itemView.setOnClickListener {
-            PlaylistHelper.getInstance().playlist = songList
+            PlaylistHelper.instance.playlist = songList
             listener.onClick(position)
         }
     }

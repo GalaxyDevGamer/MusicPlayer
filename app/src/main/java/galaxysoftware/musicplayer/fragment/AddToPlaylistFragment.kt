@@ -59,7 +59,7 @@ class AddToPlaylistFragment : BaseFragment() {
                     Realm.getDefaultInstance().executeTransaction {
                         it.insertOrUpdate(playlist)
                     }
-                    PlaylistHelper.getInstance().uncheckAll()
+                    PlaylistHelper.instance.uncheckAll()
                     backFragment()
                 } else {
                     //Show Snackbar

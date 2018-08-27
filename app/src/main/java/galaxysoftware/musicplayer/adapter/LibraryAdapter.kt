@@ -26,11 +26,11 @@ class LibraryAdapter(private val listener: SongSelectedListener) : RecyclerView.
      * Set the info to show
      */
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val item = PlaylistHelper.getInstance().library[position]
+        val item = PlaylistHelper.instance.library[position]
         holder.thumbnailView.setImageBitmap(item.albumArt)
         holder.titleView.text = item.title
         holder.itemView.setOnClickListener {
-            PlaylistHelper.getInstance().playlist = PlaylistHelper.getInstance().library
+            PlaylistHelper.instance.playlist = PlaylistHelper.instance.library
             listener.onClick(position)
         }
     }
@@ -38,7 +38,7 @@ class LibraryAdapter(private val listener: SongSelectedListener) : RecyclerView.
     /**
      * Returning the item count in the list
      */
-    override fun getItemCount() = PlaylistHelper.getInstance().library.size
+    override fun getItemCount() = PlaylistHelper.instance.library.size
 
     /**
      * ViewHolder

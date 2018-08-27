@@ -10,6 +10,7 @@ import android.util.Log
 import galaxysoftware.musicplayer.BaseFragment
 import galaxysoftware.musicplayer.R
 import galaxysoftware.musicplayer.helper.PlaylistHelper
+import kotlinx.coroutines.experimental.async
 
 /**
  * A simple [Fragment] subclass.
@@ -45,6 +46,9 @@ class SplashFragment : BaseFragment(), LoaderManager.LoaderCallbacks<String> {
         super.onResume()
         val arg = Bundle()
         arg.putString("data", "")
+//        async {
+//            PlaylistHelper.instance.initialize()
+//        }.await()
         loaderManager.initLoader(1, arg, this)
     }
 
@@ -66,7 +70,7 @@ class SplashFragment : BaseFragment(), LoaderManager.LoaderCallbacks<String> {
 
         override fun onStartLoading() {
             super.onStartLoading()
-            if (PlaylistHelper.getInstance().playlist.size > 0) {
+            if (PlaylistHelper.instance.playlist.size > 0) {
                 deliverResult("")
                 return
             }
@@ -74,7 +78,7 @@ class SplashFragment : BaseFragment(), LoaderManager.LoaderCallbacks<String> {
         }
         override fun loadInBackground(): String? {
             Log.e("status", "loadinbackground")
-            PlaylistHelper.getInstance().initialize()
+            PlaylistHelper.instance.initialize()
             return ""
         }
 

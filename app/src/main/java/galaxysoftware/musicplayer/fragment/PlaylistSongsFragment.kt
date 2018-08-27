@@ -3,7 +3,6 @@ package galaxysoftware.musicplayer.fragment
 import android.os.Bundle
 import android.support.v7.app.AlertDialog
 import android.support.v7.widget.LinearLayoutManager
-import android.util.Log
 import android.view.MenuItem
 import galaxysoftware.musicplayer.BaseFragment
 import galaxysoftware.musicplayer.R
@@ -11,11 +10,8 @@ import galaxysoftware.musicplayer.adapter.PlaylistSongsAdapter
 import galaxysoftware.musicplayer.callback.SongSelectedListener
 import galaxysoftware.musicplayer.realm.Playlist
 import galaxysoftware.musicplayer.type.FragmentType
-import galaxysoftware.musicplayer.type.NavigationType
 import io.realm.Realm
-import kotlinx.android.synthetic.main.fragment_playlist_songs.*
 import kotlinx.android.synthetic.main.fragment_song_list.*
-import kotlinx.android.synthetic.main.no_music.*
 
 /**
  * Use the [PlaylistSongsFragment.newInstance] factory method to
@@ -91,8 +87,7 @@ class PlaylistSongsFragment : BaseFragment(), SongSelectedListener {
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item?.itemId) {
             R.id.edit_playlist -> {
-                updateToolbar(FragmentType.ADD_TO_PLAYLIST, NavigationType.BACK, getString(R.string.add_songs), R.menu.done)
-                requestChangeFragment(FragmentType.ADD_TO_PLAYLIST, name)
+                requestChangeFragment(FragmentType.ADD_TO_PLAYLIST, name, FragmentType.ADD_TO_PLAYLIST.title)
             }
             R.id.delete -> {
                 AlertDialog.Builder(context!!).apply {

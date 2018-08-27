@@ -22,10 +22,9 @@ class AlbumSongsFragment : BaseFragment(), SongSelectedListener {
         index = arguments!!.getInt(ARG_COLUMN_COUNT)
         list.apply {
             layoutManager = LinearLayoutManager(context)
-            adapter = AlbumSongsAdapter(this@AlbumSongsFragment, PlaylistHelper.getInstance().albums[index].title!!)
+            adapter = AlbumSongsAdapter(this@AlbumSongsFragment, PlaylistHelper.instance.albums[index].title!!)
         }
-        setHasOptionsMenu(true)
-        playlist_cover.setImageBitmap(PlaylistHelper.getInstance().albums[index].thumbnail)
+        playlist_cover.setImageBitmap(PlaylistHelper.instance.albums[index].thumbnail)
     }
 
     /**
@@ -40,9 +39,7 @@ class AlbumSongsFragment : BaseFragment(), SongSelectedListener {
     /**
      * Called when song selected to play music
      */
-    override fun onClick(position: Int) {
-        playSelectedSong(position)
-    }
+    override fun onClick(position: Int) = playSelectedSong(position)
 
     companion object {
         const val ARG_COLUMN_COUNT = "column-count"

@@ -15,7 +15,7 @@ import kotlinx.android.synthetic.main.fragment_song.view.*
 
 class PlaylistSongsAdapter(private val listener: SongSelectedListener, val name: String) : RecyclerView.Adapter<PlaylistSongsAdapter.ViewHolder>() {
 
-    var playlist = Realm.getDefaultInstance().where(Playlist::class.java).equalTo("name", name).findFirst()
+    var playlist = Playlist.songs(name)
 
     /**
      * Called when ViewHolder is created.
@@ -30,11 +30,11 @@ class PlaylistSongsAdapter(private val listener: SongSelectedListener, val name:
      * Set the info to show
      */
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val item = playlist?.songs!![position]
+        val item = playlist[position]
         holder.thumbnail.setImageResource(R.mipmap.baseline_music_video_black_48)
-        holder.title.text = item!!.title
+        holder.title.text = item.title
         holder.itemView.setOnClickListener {
-            PlaylistHelper.getInstance().playlist = PlaylistHelper.getInstance().makePlaylistFromRealm(playlist!!.songs)
+            PlaylistHelper.instance.playlist = playlist
             listener.onClick(position)
         }
     }
@@ -42,7 +42,7 @@ class PlaylistSongsAdapter(private val listener: SongSelectedListener, val name:
     /**
      * Returning the item count in the list
      */
-    override fun getItemCount() = playlist?.songs!!.size
+    override fun getItemCount() = playlist.size
 
     /**
      * Reloading data
@@ -50,7 +50,7 @@ class PlaylistSongsAdapter(private val listener: SongSelectedListener, val name:
      * This is called from Fragment
      */
     fun refresh() {
-        playlist = Realm.getDefaultInstance().where(Playlist::class.java).equalTo("name", name).findFirst()
+        playlist = Playlist.songs(name)
         notifyDataSetChanged()
     }
 

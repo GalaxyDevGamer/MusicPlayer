@@ -37,10 +37,7 @@ class AlbumFragment : BaseFragment(), ItemSelectedListener {
      * Called when Artist is selected
      * Setting the data for next fragment, then changing fragment.
      */
-    override fun onItemSelected(index: Int) {
-        updateToolbar(FragmentType.ALBUM_LIST, NavigationType.BACK, PlaylistHelper.getInstance().albums[index].title!!, R.menu.empty)
-        requestChangeFragment(FragmentType.ALBUM_LIST, index)
-    }
+    override fun onItemSelected(index: Int) = requestChangeFragment(FragmentType.ALBUM_LIST, index, PlaylistHelper.instance.albums[index].title!!)
 
     override fun onLongSelection(item: Playlist) {
 

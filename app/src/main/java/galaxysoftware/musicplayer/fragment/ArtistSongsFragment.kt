@@ -7,8 +7,6 @@ import galaxysoftware.musicplayer.R
 import galaxysoftware.musicplayer.adapter.ArtistSongsAdapter
 import galaxysoftware.musicplayer.callback.SongSelectedListener
 import galaxysoftware.musicplayer.helper.PlaylistHelper
-import galaxysoftware.musicplayer.type.FragmentType
-import galaxysoftware.musicplayer.type.NavigationType
 import kotlinx.android.synthetic.main.fragment_playlist_songs.*
 import kotlinx.android.synthetic.main.fragment_song_list.*
 
@@ -24,10 +22,9 @@ class ArtistSongsFragment : BaseFragment(), SongSelectedListener {
         index = arguments!!.getInt(ARG_COLUMN_COUNT)
         list.apply {
             layoutManager = LinearLayoutManager(context)
-            adapter = ArtistSongsAdapter(this@ArtistSongsFragment, PlaylistHelper.getInstance().artists[index].title!!)
+            adapter = ArtistSongsAdapter(this@ArtistSongsFragment, PlaylistHelper.instance.artists[index].title!!)
         }
-        setHasOptionsMenu(true)
-        playlist_cover.setImageBitmap(PlaylistHelper.getInstance().artists[index].thumbnail)
+        playlist_cover.setImageBitmap(PlaylistHelper.instance.artists[index].thumbnail)
     }
 
     /**
@@ -42,9 +39,7 @@ class ArtistSongsFragment : BaseFragment(), SongSelectedListener {
     /**
      * Called when song selected to play music
      */
-    override fun onClick(position: Int) {
-        playSelectedSong(position)
-    }
+    override fun onClick(position: Int) = playSelectedSong(position)
 
     companion object {
         const val ARG_COLUMN_COUNT = "column-count"

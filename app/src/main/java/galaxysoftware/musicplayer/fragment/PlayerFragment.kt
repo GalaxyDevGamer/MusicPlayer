@@ -11,8 +11,6 @@ import galaxysoftware.musicplayer.R
 import galaxysoftware.musicplayer.callback.MusicCallback
 import galaxysoftware.musicplayer.helper.PlaylistHelper
 import galaxysoftware.musicplayer.service.MusicService
-import galaxysoftware.musicplayer.type.FragmentType
-import galaxysoftware.musicplayer.type.NavigationType
 import kotlinx.android.synthetic.main.playerlayout.*
 
 /**
@@ -67,7 +65,7 @@ class PlayerFragment : BaseFragment(), MusicCallback {
             }
         }
         skip.setOnClickListener {
-            if (PlaylistHelper.getInstance().isNextSongAvailable() || musicService.repeat == 1) {
+            if (PlaylistHelper.instance.isNextSongAvailable() || musicService.repeat == 1) {
                 musicService.playNext()
                 updateSongInfo()
             } else {
@@ -79,7 +77,7 @@ class PlayerFragment : BaseFragment(), MusicCallback {
             }
         }
         shuffle.apply {
-            setImageResource(if (PlaylistHelper.getInstance().shuffleEnabled) R.mipmap.baseline_shuffle_black_48_red else R.mipmap.baseline_shuffle_black_48)
+            setImageResource(if (PlaylistHelper.instance.shuffleEnabled) R.mipmap.baseline_shuffle_black_48_red else R.mipmap.baseline_shuffle_black_48)
             setOnClickListener { setImageResource(musicService.shuffleClick()) }
         }
         repeat.apply {
@@ -123,8 +121,8 @@ class PlayerFragment : BaseFragment(), MusicCallback {
             play_pause.setImageResource(R.mipmap.baseline_play_circle_filled_black_48)
             return
         }
-        song_title.text = PlaylistHelper.getInstance().getTitle()
-        thumbnail.setImageBitmap(PlaylistHelper.getInstance().getAlbumArt())
+        song_title.text = PlaylistHelper.instance.getTitle()
+        thumbnail.setImageBitmap(PlaylistHelper.instance.getAlbumArt())
         duration.text = getTimeString(musicService.player.duration.toLong())
         playtime.text = getTimeString(musicService.player.currentPosition.toLong())
         playtimeBar.max = musicService.player.duration
@@ -138,7 +136,6 @@ class PlayerFragment : BaseFragment(), MusicCallback {
      */
     override fun onResume() {
         super.onResume()
-        updateToolbar(FragmentType.PLAYER, NavigationType.CLOSE, "", R.menu.empty)
         updateSongInfo()
         startCounting()
     }

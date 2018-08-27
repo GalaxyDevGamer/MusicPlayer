@@ -26,7 +26,7 @@ class ArtistAdapter(private val listener: ItemSelectedListener) : RecyclerView.A
      * Set the info to show
      */
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val item = PlaylistHelper.getInstance().artists[position]
+        val item = PlaylistHelper.instance.artists[position]
         holder.thumbnail.setImageBitmap(item.thumbnail)
         holder.title.text = item.title
         holder.itemView.setOnClickListener {
@@ -37,7 +37,7 @@ class ArtistAdapter(private val listener: ItemSelectedListener) : RecyclerView.A
     /**
      * Returning the item count in the list
      */
-    override fun getItemCount() = PlaylistHelper.getInstance().artists.size
+    override fun getItemCount() = PlaylistHelper.instance.artists.size
 
     /**
      * ViewHolder

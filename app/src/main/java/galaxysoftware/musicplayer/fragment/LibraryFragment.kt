@@ -5,8 +5,6 @@ import galaxysoftware.musicplayer.BaseFragment
 import galaxysoftware.musicplayer.R
 import galaxysoftware.musicplayer.adapter.LibraryAdapter
 import galaxysoftware.musicplayer.callback.SongSelectedListener
-import galaxysoftware.musicplayer.type.FragmentType
-import galaxysoftware.musicplayer.type.NavigationType
 import kotlinx.android.synthetic.main.fragment_song_list.*
 
 class LibraryFragment : BaseFragment(), SongSelectedListener {
@@ -34,9 +32,7 @@ class LibraryFragment : BaseFragment(), SongSelectedListener {
     /**
      * Called when song selected to play music
      */
-    override fun onClick(position: Int) {
-        playSelectedSong(position)
-    }
+    override fun onClick(position: Int) = playSelectedSong(position)
 
     companion object {
 
