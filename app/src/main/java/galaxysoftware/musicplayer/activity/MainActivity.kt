@@ -37,11 +37,6 @@ class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnect
 
     private var currentTabType = TabType.LIBRARY
 
-    private val libraryFragment = LibraryFragment.newInstance()
-    private val albumFragment = AlbumFragment.newInstance()
-    private val artistFragment = ArtistFragment.newInstance()
-    private val playlistFragment = PlaylistFragment.newInstance()
-
     private val fragmentTypeHistory = HashMap<TabType, ArrayList<FragmentType>>()
     private val tabHistory = HashMap<TabType, ArrayList<BaseFragment>>()
     var musicService: MusicService? = null
@@ -96,13 +91,13 @@ class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnect
         ContextData.instance.applicationContext = applicationContext
 //        DialogHelper.init(this)
         tabHistory[TabType.LIBRARY] = ArrayList()
-        tabHistory[TabType.LIBRARY]?.add(libraryFragment)
+        tabHistory[TabType.LIBRARY]?.add(FragmentMakeHelper.makeFragment(FragmentType.LIBRARY_TAB, ""))
         tabHistory[TabType.ALBUM] = ArrayList()
-        tabHistory[TabType.ALBUM]?.add(albumFragment)
+        tabHistory[TabType.ALBUM]?.add(FragmentMakeHelper.makeFragment(FragmentType.ALBUM_TAB, ""))
         tabHistory[TabType.ARTIST] = ArrayList()
-        tabHistory[TabType.ARTIST]?.add(artistFragment)
+        tabHistory[TabType.ARTIST]?.add(FragmentMakeHelper.makeFragment(FragmentType.ARTIST_TAB, ""))
         tabHistory[TabType.PLAYLIST] = ArrayList()
-        tabHistory[TabType.PLAYLIST]?.add(playlistFragment)
+        tabHistory[TabType.PLAYLIST]?.add(FragmentMakeHelper.makeFragment(FragmentType.PLAYLIST_TAB, ""))
         fragmentTypeHistory[TabType.LIBRARY] = ArrayList()
         fragmentTypeHistory[TabType.ALBUM] = ArrayList()
         fragmentTypeHistory[TabType.ARTIST] = ArrayList()
@@ -350,7 +345,7 @@ class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnect
             closePLayerLayout()
             return
         }
-        if (currentTabType == TabType.LIBRARY && getCurrentFragment() == libraryFragment) {
+        if (currentTabType == TabType.LIBRARY && tabHistory[currentTabType]!!.size == 1) {
             finish()
             return
         }
@@ -363,7 +358,6 @@ class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnect
 
     /**
      * Updating Toolbar
-     * Data is Stored on dataContainer
      *
      * *Icon: BACK or CLOSE
      * *Title: Title

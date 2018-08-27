@@ -16,7 +16,7 @@ import kotlinx.android.synthetic.main.fragment_song.view.*
 
 class AlbumSongsAdapter(private val listener: SongSelectedListener, album: String) : RecyclerView.Adapter<AlbumSongsAdapter.ViewHolder>() {
 
-    private val songList = PlaylistHelper.instance.makePlaylist(ContextData.getInstance().applicationContext?.contentResolver?.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Array(1) {"*"}, "album ='$album'", null, "title")!!)
+    private val songList = PlaylistHelper.instance.makePlaylist(PlaylistHelper.instance.contentResolver?.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Array(1) {"*"}, "album ='$album'", null, "title")!!)
 
     /**
      * Called when ViewHolder is created.

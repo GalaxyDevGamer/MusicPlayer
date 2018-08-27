@@ -10,6 +10,7 @@ import galaxysoftware.musicplayer.model.Album
 import galaxysoftware.musicplayer.model.Artist
 import galaxysoftware.musicplayer.model.LibraryWithSelection
 import galaxysoftware.musicplayer.model.Song
+import galaxysoftware.musicplayer.realm.Playlist
 import galaxysoftware.musicplayer.realm.Songs
 import io.realm.RealmList
 import java.util.*
@@ -23,6 +24,7 @@ class PlaylistHelper {
     val library = ArrayList<Song>()
     val albums = ArrayList<Album>()
     val artists = ArrayList<Artist>()
+    val custom_playlist = ArrayList<Playlist>()
     val libraryWithSelection = ArrayList<LibraryWithSelection>()
     val shuffleList = ArrayList<Song>()
 
@@ -42,6 +44,7 @@ class PlaylistHelper {
         loadLibrary()
         loadAlbums()
         loadArtists()
+        loadPlaylist()
         if (shuffleEnabled)
             shuffle()
     }
@@ -108,6 +111,10 @@ class PlaylistHelper {
             } while (artistCursor.moveToNext())
         }
         artistCursor.close()
+    }
+
+    private fun loadPlaylist() {
+        custom_playlist.addAll(Playlist.names())
     }
 
     /**

@@ -20,7 +20,11 @@ open class Playlist: RealmObject() {
         }
 
         fun names() = Realm.getDefaultInstance().use {
-            return@use it.where(Playlist::class.java).findAll()
-        }!!
+            val list: MutableList<Playlist> = mutableListOf()
+            it.where(Playlist::class.java).findAll().forEach {
+                list.add(it)
+            }
+            return@use list
+        }
     }
 }

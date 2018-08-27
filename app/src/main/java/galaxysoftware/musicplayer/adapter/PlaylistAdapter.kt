@@ -10,6 +10,7 @@ import android.widget.TextView
 import galaxysoftware.musicplayer.R
 import galaxysoftware.musicplayer.callback.ItemSelectedListener
 import galaxysoftware.musicplayer.callback.PlaylistSelectedListener
+import galaxysoftware.musicplayer.helper.PlaylistHelper
 import galaxysoftware.musicplayer.realm.Playlist
 import io.realm.Realm
 import io.realm.RealmResults
@@ -17,7 +18,7 @@ import kotlinx.android.synthetic.main.fragment_song.view.*
 
 class PlaylistAdapter(private val listener: PlaylistSelectedListener) : RecyclerView.Adapter<PlaylistAdapter.ViewHolder>() {
 
-    var playlist = Playlist.names()
+    var playlist = Realm.getDefaultInstance().where(Playlist::class.java).findAll()
 
     /**
      * Called when ViewHolder is created.
@@ -34,12 +35,12 @@ class PlaylistAdapter(private val listener: PlaylistSelectedListener) : Recycler
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = playlist[position]
         holder.thumbnail.setImageResource(R.mipmap.baseline_music_video_black_48)
-        holder.title.text = item!!.name
+        holder.title.text = item?.name
         holder.itemView.setOnClickListener {
-            listener.onPlaylistSelected(item.name!!)
+            listener.onPlaylistSelected(item?.name!!)
         }
         holder.itemView.setOnLongClickListener {
-            listener.onLongSelection(item)
+            listener.onLongSelection(item!!)
             return@setOnLongClickListener true
         }
     }
@@ -55,7 +56,7 @@ class PlaylistAdapter(private val listener: PlaylistSelectedListener) : Recycler
      * This is called from Fragment
      */
     fun refresh() {
-        playlist = Playlist.names()
+        playlist = Realm.getDefaultInstance().where(Playlist::class.java).findAll()
         notifyDataSetChanged()
     }
 
