@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/artist_navigation"
+    app:startDestination="@id/artistFragment">
+
+    <fragment
+        android:id="@+id/artistFragment"
+        android:name="galaxysoftware.musicplayer.fragment.ArtistFragment"
+        android:label="Artists" >
+        <action
+            android:id="@+id/action_artistFragment_to_artistSongsFragment"
+            app:destination="@id/artistSongsFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popUpTo="@id/artistFragment"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            app:launchSingleTop="true" />
+    </fragment>
+    <fragment
+        android:id="@+id/artistSongsFragment"
+        android:name="galaxysoftware.musicplayer.fragment.ArtistSongsFragment"
+        android:label="ArtistSongsFragment" >
+        <argument
+            android:name="index"
+            app:argType="integer"
+            android:defaultValue="0" />
+        <argument
+            android:name="title"
+            app:argType="string" />
+    </fragment>
+</navigation>

@@ -9,7 +9,6 @@ import galaxysoftware.musicplayer.activity.MainActivity
  */
 class ContextData {
     var applicationContext: Context? = null
-    var mainActivity: MainActivity? = null
 
     companion object {
         val instance = ContextData()

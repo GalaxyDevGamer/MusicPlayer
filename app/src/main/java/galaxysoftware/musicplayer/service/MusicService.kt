@@ -198,33 +198,30 @@ class MusicService : Service() {
                 }
             }
         }
-        return R.mipmap.baseline_repeat_black_48
     }
 
     /**
      * Changing shuffle state. Also returning the resource id depending on the state
      */
-    fun shuffleClick(): Int {
-        return if (playlistHelper.shuffleEnabled) {
-            playlistHelper.shuffleEnabled = false
-            playlistHelper.shuffleList.clear()
-            playlistHelper.shuffleIndex = 0
-            getSharedPreferences("Setting", Context.MODE_PRIVATE).apply {
-                edit().apply {
-                    putBoolean("shuffle", false).apply()
-                }
+    fun shuffleClick() = if (playlistHelper.shuffleEnabled) {
+        playlistHelper.shuffleEnabled = false
+        playlistHelper.shuffleList.clear()
+        playlistHelper.shuffleIndex = 0
+        getSharedPreferences("Setting", Context.MODE_PRIVATE).apply {
+            edit().apply {
+                putBoolean("shuffle", false).apply()
             }
-            R.mipmap.baseline_shuffle_black_48
-        } else {
-            playlistHelper.shuffleEnabled = true
-            playlistHelper.shuffle()
-            getSharedPreferences("Setting", Context.MODE_PRIVATE).apply {
-                edit().apply {
-                    putBoolean("shuffle", true).apply()
-                }
-            }
-            R.mipmap.baseline_shuffle_black_48_red
         }
+        R.mipmap.baseline_shuffle_black_48
+    } else {
+        playlistHelper.shuffleEnabled = true
+        playlistHelper.shuffle()
+        getSharedPreferences("Setting", Context.MODE_PRIVATE).apply {
+            edit().apply {
+                putBoolean("shuffle", true).apply()
+            }
+        }
+        R.mipmap.baseline_shuffle_black_48_red
     }
 
     /**
@@ -243,14 +240,14 @@ class MusicService : Service() {
     /**
      * Called when the music play completed
      */
-    fun playComplete() {
-        if (playlistHelper.isNextSongAvailable()) {
-            playNext()
+    fun playComplete() = if (playlistHelper.isNextSongAvailable()) {
+        playNext()
+    } else {
+        if (repeat == 1) {
+            playlistHelper.refreshPlaylist()
+            playMusic(0)
         } else {
-            if (repeat == 1) {
-                playlistHelper.refreshPlaylist()
-                playMusic(0)
-            }
+
         }
     }
 }

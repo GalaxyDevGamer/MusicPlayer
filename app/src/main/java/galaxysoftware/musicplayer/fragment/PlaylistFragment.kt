@@ -48,7 +48,7 @@ class PlaylistFragment : BaseFragment(), PlaylistSelectedListener {
     private fun checkEmpty() {
         if (adapter.playlist.size == 0) {
             playlistHistory.add(NoItemFragment.newInstance(R.string.no_playlist))
-            fragmentManager!!.beginTransaction().add(R.id.playlistTabContainer, playlistHistory[0]).commit()
+//            fragmentManager!!.beginTransaction().add(R.id.playlistTabContainer, playlistHistory[0]).commit()
         } else {
             if (playlistHistory.size > 0) {
                 fragmentManager!!.beginTransaction().remove(playlistHistory[0]).commit()

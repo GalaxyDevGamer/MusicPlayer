@@ -10,8 +10,7 @@ import galaxysoftware.musicplayer.R
 import galaxysoftware.musicplayer.callback.SongSelectedListener
 import galaxysoftware.musicplayer.helper.PlaylistHelper
 import galaxysoftware.musicplayer.realm.Playlist
-import io.realm.Realm
-import kotlinx.android.synthetic.main.fragment_song.view.*
+import kotlinx.android.synthetic.main.song_cell.view.*
 
 class PlaylistSongsAdapter(private val listener: SongSelectedListener, val name: String) : RecyclerView.Adapter<PlaylistSongsAdapter.ViewHolder>() {
 
@@ -22,7 +21,7 @@ class PlaylistSongsAdapter(private val listener: SongSelectedListener, val name:
      * Define the layout using on ViewHolder
      */
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.fragment_song, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.song_cell, parent, false)
         return ViewHolder(view)
     }
 

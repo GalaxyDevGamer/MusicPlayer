@@ -1,6 +1,7 @@
 package galaxysoftware.musicplayer.fragment
 
 import android.support.v7.widget.LinearLayoutManager
+import androidx.navigation.fragment.findNavController
 import galaxysoftware.musicplayer.BaseFragment
 import galaxysoftware.musicplayer.R
 import galaxysoftware.musicplayer.adapter.AlbumAdapter
@@ -37,7 +38,7 @@ class AlbumFragment : BaseFragment(), ItemSelectedListener {
      * Called when Artist is selected
      * Setting the data for next fragment, then changing fragment.
      */
-    override fun onItemSelected(index: Int) = requestChangeFragment(FragmentType.ALBUM_LIST, index, PlaylistHelper.instance.albums[index].title!!)
+    override fun onItemSelected(index: Int) = findNavController().navigate(AlbumFragmentDirections.actionAlbumFragmentToAlbumSongsFragment(PlaylistHelper.instance.albums[index].title!!).apply { this.index = index })
 
     override fun onLongSelection(item: Playlist) {
 

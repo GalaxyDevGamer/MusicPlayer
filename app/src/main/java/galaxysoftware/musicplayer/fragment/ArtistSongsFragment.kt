@@ -19,7 +19,7 @@ class ArtistSongsFragment : BaseFragment(), SongSelectedListener {
      * Creating adapter to show on RecyclerView and set to it
      */
     override fun initialize() {
-        index = arguments!!.getInt(ARG_COLUMN_COUNT)
+        index = arguments.let { AlbumSongsFragmentArgs.fromBundle(it!!).index }
         list.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = ArtistSongsAdapter(this@ArtistSongsFragment, PlaylistHelper.instance.artists[index].title!!)

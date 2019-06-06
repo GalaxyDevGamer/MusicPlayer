@@ -16,6 +16,9 @@ import android.view.KeyEvent
 import android.view.Menu
 import android.view.View
 import android.widget.Toast
+import androidx.navigation.NavController
+import androidx.navigation.findNavController
+import androidx.navigation.ui.NavigationUI
 import galaxysoftware.musicplayer.BaseFragment
 import galaxysoftware.musicplayer.ContextData
 import galaxysoftware.musicplayer.R
@@ -29,9 +32,6 @@ import galaxysoftware.musicplayer.type.FragmentType
 import galaxysoftware.musicplayer.type.NavigationType
 import galaxysoftware.musicplayer.type.TabType
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.launch
 
 
 class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnection, MusicCallback {
@@ -46,6 +46,7 @@ class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnect
 
     private val REQUEST_CODE_READ_EXTERNAL_STORAGE = 0x01
 
+    private lateinit var navController: NavController
     /**
      * Called when app is started. (ANDROID'S LIFECYCLE
      * Check for the permission to make sure that READ_EXTERNAL_STORAGE is allowed for getting device files
@@ -54,6 +55,7 @@ class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnect
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
+        navController = findNavController(R.id.nav_host_fragment)
         if (ContextCompat.checkSelfPermission(this, READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             // アクセス権がOFFならここでONにしてもらうようリクエストしてもらう
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, READ_EXTERNAL_STORAGE)) {
@@ -90,28 +92,32 @@ class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnect
      * Initialize the required components and setting data for each tabs
      */
     private fun initVariable() {
-        ContextData.instance.mainActivity = this@MainActivity
         ContextData.instance.applicationContext = applicationContext
+
 //        DialogHelper.init(this)
-        tabHistory[TabType.LIBRARY] = ArrayList()
-        tabHistory[TabType.LIBRARY]?.add(FragmentMakeHelper.makeFragment(FragmentType.LIBRARY_TAB, ""))
-        tabHistory[TabType.ALBUM] = ArrayList()
-        tabHistory[TabType.ALBUM]?.add(FragmentMakeHelper.makeFragment(FragmentType.ALBUM_TAB, ""))
-        tabHistory[TabType.ARTIST] = ArrayList()
-        tabHistory[TabType.ARTIST]?.add(FragmentMakeHelper.makeFragment(FragmentType.ARTIST_TAB, ""))
-        tabHistory[TabType.PLAYLIST] = ArrayList()
-        tabHistory[TabType.PLAYLIST]?.add(FragmentMakeHelper.makeFragment(FragmentType.PLAYLIST_TAB, ""))
-        fragmentTypeHistory[TabType.LIBRARY] = ArrayList()
-        fragmentTypeHistory[TabType.ALBUM] = ArrayList()
-        fragmentTypeHistory[TabType.ARTIST] = ArrayList()
-        fragmentTypeHistory[TabType.PLAYLIST] = ArrayList()
-        fragmentTypeHistory[TabType.LIBRARY]?.add(FragmentType.LIBRARY_TAB)
-        fragmentTypeHistory[TabType.ALBUM]?.add(FragmentType.ALBUM_TAB)
-        fragmentTypeHistory[TabType.ARTIST]?.add(FragmentType.ARTIST_TAB)
-        fragmentTypeHistory[TabType.PLAYLIST]?.add(FragmentType.PLAYLIST_TAB)
+        NavigationUI.setupActionBarWithNavController(this, navController)
+        NavigationUI.setupWithNavController(bottom_navigation, navController)
+//        tabHistory[TabType.LIBRARY] = ArrayList()
+//        tabHistory[TabType.LIBRARY]?.add(FragmentMakeHelper.makeFragment(FragmentType.LIBRARY_TAB, ""))
+//        tabHistory[TabType.ALBUM] = ArrayList()
+//        tabHistory[TabType.ALBUM]?.add(FragmentMakeHelper.makeFragment(FragmentType.ALBUM_TAB, ""))
+//        tabHistory[TabType.ARTIST] = ArrayList()
+//        tabHistory[TabType.ARTIST]?.add(FragmentMakeHelper.makeFragment(FragmentType.ARTIST_TAB, ""))
+//        tabHistory[TabType.PLAYLIST] = ArrayList()
+//        tabHistory[TabType.PLAYLIST]?.add(FragmentMakeHelper.makeFragment(FragmentType.PLAYLIST_TAB, ""))
+//        fragmentTypeHistory[TabType.LIBRARY] = ArrayList()
+//        fragmentTypeHistory[TabType.ALBUM] = ArrayList()
+//        fragmentTypeHistory[TabType.ARTIST] = ArrayList()
+//        fragmentTypeHistory[TabType.PLAYLIST] = ArrayList()
+//        fragmentTypeHistory[TabType.LIBRARY]?.add(FragmentType.LIBRARY_TAB)
+//        fragmentTypeHistory[TabType.ALBUM]?.add(FragmentType.ALBUM_TAB)
+//        fragmentTypeHistory[TabType.ARTIST]?.add(FragmentType.ARTIST_TAB)
+//        fragmentTypeHistory[TabType.PLAYLIST]?.add(FragmentType.PLAYLIST_TAB)
         setButton()
         setService()
     }
+
+    override fun onNavigateUp() = navController.navigateUp()
 
     /**
      * Set onClickListener for ButtonNavigationView and SmallController(It's on the layout file)
@@ -119,27 +125,27 @@ class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnect
     private fun setButton() {
         play.setOnClickListener { play.setImageResource(musicService?.playOrPause()!!) }
         skip.setOnClickListener { musicService?.playNext() }
-        bottom_navigation.setOnNavigationItemSelectedListener {
-            when (it.itemId) {
-                R.id.libraryTab -> {
-                    this@MainActivity.changeTab(galaxysoftware.musicplayer.type.TabType.LIBRARY)
-                    return@setOnNavigationItemSelectedListener true
-                }
-                R.id.albumTab -> {
-                    this@MainActivity.changeTab(galaxysoftware.musicplayer.type.TabType.ALBUM)
-                    return@setOnNavigationItemSelectedListener true
-                }
-                R.id.artistTab -> {
-                    this@MainActivity.changeTab(galaxysoftware.musicplayer.type.TabType.ARTIST)
-                    return@setOnNavigationItemSelectedListener true
-                }
-                R.id.playlistTab -> {
-                    this@MainActivity.changeTab(galaxysoftware.musicplayer.type.TabType.PLAYLIST)
-                    return@setOnNavigationItemSelectedListener true
-                }
-            }
-            false
-        }
+//        bottom_navigation.setOnNavigationItemSelectedListener {
+//            when (it.itemId) {
+//                R.id.libraryTab -> {
+//                    this@MainActivity.changeTab(galaxysoftware.musicplayer.type.TabType.LIBRARY)
+//                    return@setOnNavigationItemSelectedListener true
+//                }
+//                R.id.albumTab -> {
+//                    this@MainActivity.changeTab(galaxysoftware.musicplayer.type.TabType.ALBUM)
+//                    return@setOnNavigationItemSelectedListener true
+//                }
+//                R.id.artistTab -> {
+//                    this@MainActivity.changeTab(galaxysoftware.musicplayer.type.TabType.ARTIST)
+//                    return@setOnNavigationItemSelectedListener true
+//                }
+//                R.id.playlistTab -> {
+//                    this@MainActivity.changeTab(galaxysoftware.musicplayer.type.TabType.PLAYLIST)
+//                    return@setOnNavigationItemSelectedListener true
+//                }
+//            }
+//            false
+//        }
         small_controller.setOnClickListener {
             if (PlaylistHelper.instance.playlist.size > 0) {
                 rootHistory.add(PlayerFragment.newInstance())
@@ -204,30 +210,30 @@ class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnect
      * Called from SplashFragment.
      */
     fun loadLibrary() {
-        supportFragmentManager.beginTransaction().apply {
-            remove(rootHistory[0])
-            replace(R.id.libraryTabContainer, tabHistory[TabType.LIBRARY]!![0])
-            replace(R.id.albumTabContainer, tabHistory[TabType.ALBUM]!![0])
-            replace(R.id.artistTabContainer, tabHistory[TabType.ARTIST]!![0])
-            replace(R.id.playlistTabContainer, tabHistory[TabType.PLAYLIST]!![0])
-            commit()
-        }
-        rootHistory.remove(rootHistory[0])
-        changeTab(TabType.LIBRARY)
+//        supportFragmentManager.beginTransaction().apply {
+//            remove(rootHistory[0])
+//            replace(R.id.libraryTabContainer, tabHistory[TabType.LIBRARY]!![0])
+//            replace(R.id.albumTabContainer, tabHistory[TabType.ALBUM]!![0])
+//            replace(R.id.artistTabContainer, tabHistory[TabType.ARTIST]!![0])
+//            replace(R.id.playlistTabContainer, tabHistory[TabType.PLAYLIST]!![0])
+//            commit()
+//        }
+//        rootHistory.remove(rootHistory[0])
+//        changeTab(TabType.LIBRARY)
     }
 
     /**
      * Called when changing the tab.
      * Called from callback on bottom_navigation
      */
-    private fun changeTab(tabType: TabType) {
-        currentTabType = tabType
-        updateToolbar()
-        libraryTabContainer.visibility = if (currentTabType == TabType.LIBRARY) View.VISIBLE else View.INVISIBLE
-        albumTabContainer.visibility = if (currentTabType == TabType.ALBUM) View.VISIBLE else View.INVISIBLE
-        artistTabContainer.visibility = if (currentTabType == TabType.ARTIST) View.VISIBLE else View.INVISIBLE
-        playlistTabContainer.visibility = if (currentTabType == TabType.PLAYLIST) View.VISIBLE else View.INVISIBLE
-    }
+//    private fun changeTab(tabType: TabType) {
+//        currentTabType = tabType
+//        updateToolbar()
+//        libraryTabContainer.visibility = if (currentTabType == TabType.LIBRARY) View.VISIBLE else View.INVISIBLE
+//        albumTabContainer.visibility = if (currentTabType == TabType.ALBUM) View.VISIBLE else View.INVISIBLE
+//        artistTabContainer.visibility = if (currentTabType == TabType.ARTIST) View.VISIBLE else View.INVISIBLE
+//        playlistTabContainer.visibility = if (currentTabType == TabType.PLAYLIST) View.VISIBLE else View.INVISIBLE
+//    }
 
     /**
      * Playing selected music.
@@ -288,11 +294,11 @@ class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnect
      * Updating the menu. (ANDROID'S CALLBACK
      * Called if invalidateOptionsMenu() is called.
      */
-    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
-        menu?.clear()
-        menuInflater.inflate(currentFragmentType().menu, menu)
-        return super.onPrepareOptionsMenu(menu)
-    }
+//    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+//        menu?.clear()
+//        menuInflater.inflate(currentFragmentType().menu, menu)
+//        return super.onPrepareOptionsMenu(menu)
+//    }
 
     /**
      * Called from outside of the MainActivity for changing fragment
@@ -302,8 +308,8 @@ class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnect
         fragmentType.title = title
         tabHistory[currentTabType]?.add(fragment)
         fragmentTypeHistory[currentTabType]?.add(fragmentType)
-        replaceFragment(getCurrentFragment())
-        updateToolbar()
+//        replaceFragment(getCurrentFragment())
+//        updateToolbar()
     }
 
     /**
@@ -314,7 +320,7 @@ class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnect
     /**
      * Returns current FragmentType based on each tabs
      */
-    fun currentFragmentType() = fragmentTypeHistory[currentTabType]!![fragmentTypeHistory[currentTabType]!!.size - 1]
+//    fun currentFragmentType() = fragmentTypeHistory[currentTabType]!![fragmentTypeHistory[currentTabType]!!.size - 1]
 
     /**
      * Back Fragment
@@ -323,22 +329,22 @@ class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnect
     fun backFragment() {
         tabHistory[currentTabType]!!.removeAt(tabHistory[currentTabType]!!.size - 1)
         fragmentTypeHistory[currentTabType]!!.removeAt(fragmentTypeHistory[currentTabType]!!.size - 1)
-        replaceFragment(getCurrentFragment())
-        updateToolbar()
+//        replaceFragment(getCurrentFragment())
+//        updateToolbar()
     }
 
     /**
      * Replacing Fragment
      */
-    private fun replaceFragment(fragment: BaseFragment) = supportFragmentManager.beginTransaction().apply {
-        when (currentTabType) {
-            TabType.LIBRARY -> replace(R.id.libraryTabContainer, fragment)
-            TabType.ALBUM -> replace(R.id.albumTabContainer, fragment)
-            TabType.ARTIST -> replace(R.id.artistTabContainer, fragment)
-            TabType.PLAYLIST -> replace(R.id.playlistTabContainer, fragment)
-        }
-        commit()
-    }
+//    private fun replaceFragment(fragment: BaseFragment) = supportFragmentManager.beginTransaction().apply {
+//        when (currentTabType) {
+//            TabType.LIBRARY -> replace(R.id.libraryTabContainer, fragment)
+//            TabType.ALBUM -> replace(R.id.albumTabContainer, fragment)
+//            TabType.ARTIST -> replace(R.id.artistTabContainer, fragment)
+//            TabType.PLAYLIST -> replace(R.id.playlistTabContainer, fragment)
+//        }
+//        commit()
+//    }
 
     /**
      * Called when back key is pressed (ANDROID'S CALLBACK
@@ -353,7 +359,7 @@ class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnect
             return
         }
         if (currentTabType != TabType.LIBRARY && tabHistory[currentTabType]!!.size == 1) {
-            changeTab(TabType.LIBRARY)
+//            changeTab(TabType.LIBRARY)
             return
         }
         backFragment()
@@ -366,24 +372,24 @@ class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnect
      * *Title: Title
      * invalidateOptionsMenu(): Update Menu
      */
-    private fun updateToolbar() {
-        when (currentFragmentType().navigation) {
-            NavigationType.BACK -> {
-                toolbar.navigationIcon = ContextCompat.getDrawable(this, R.mipmap.baseline_keyboard_arrow_left_black_24)
-                toolbar.setNavigationOnClickListener { backFragment() }
-            }
-            NavigationType.CLOSE -> {
-                toolbar.navigationIcon = ContextCompat.getDrawable(this, R.mipmap.baseline_clear_black_48)
-                toolbar.setNavigationOnClickListener { closePLayerLayout() }
-            }
-            else -> {
-                toolbar.navigationIcon = null
-                toolbar.setNavigationOnClickListener(null)
-            }
-        }
-        toolbar.title = currentFragmentType().title
-        invalidateOptionsMenu()
-    }
+//    private fun updateToolbar() {
+//        when (currentFragmentType().navigation) {
+//            NavigationType.BACK -> {
+//                toolbar.navigationIcon = ContextCompat.getDrawable(this, R.mipmap.baseline_keyboard_arrow_left_black_24)
+//                toolbar.setNavigationOnClickListener { backFragment() }
+//            }
+//            NavigationType.CLOSE -> {
+//                toolbar.navigationIcon = ContextCompat.getDrawable(this, R.mipmap.baseline_clear_black_48)
+//                toolbar.setNavigationOnClickListener { closePLayerLayout() }
+//            }
+//            else -> {
+//                toolbar.navigationIcon = null
+//                toolbar.setNavigationOnClickListener(null)
+//            }
+//        }
+//        toolbar.title = currentFragmentType().title
+//        invalidateOptionsMenu()
+//    }
 
     /**
      * Close Player layout
@@ -391,7 +397,7 @@ class MainActivity : AppCompatActivity(), ChangeFragmentListener, ServiceConnect
     private fun closePLayerLayout() {
         supportFragmentManager.beginTransaction().remove(rootHistory[0]).commit()
         rootHistory.removeAt(0)
-        updateToolbar()
+//        updateToolbar()
     }
 
     /**

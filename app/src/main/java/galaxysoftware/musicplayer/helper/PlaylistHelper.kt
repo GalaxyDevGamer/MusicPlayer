@@ -13,10 +13,8 @@ import galaxysoftware.musicplayer.model.Song
 import galaxysoftware.musicplayer.realm.Playlist
 import galaxysoftware.musicplayer.realm.Songs
 import io.realm.RealmList
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -43,7 +41,7 @@ class PlaylistHelper {
      * Initializing arrays
      * Called from SplashFragment
      */
-    fun initialize() = async(CommonPool) {
+    fun initialize() = GlobalScope.async {
         loadLibrary()
         loadAlbums()
         loadArtists()

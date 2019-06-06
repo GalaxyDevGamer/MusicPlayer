@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
+    app:startDestination="@id/library_navigation">
+
+    <include app:graph="@navigation/library_navigation" />
+    <include app:graph="@navigation/album_navigation" />
+    <include app:graph="@navigation/artist_navigation" />
+    <include app:graph="@navigation/playlist_navigation" />
+</navigation>

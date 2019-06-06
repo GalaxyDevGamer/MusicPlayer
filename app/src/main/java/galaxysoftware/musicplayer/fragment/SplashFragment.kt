@@ -4,8 +4,8 @@ import android.support.v4.app.Fragment
 import galaxysoftware.musicplayer.BaseFragment
 import galaxysoftware.musicplayer.R
 import galaxysoftware.musicplayer.helper.PlaylistHelper
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 /**
  * A simple [Fragment] subclass.
@@ -20,7 +20,7 @@ class SplashFragment : BaseFragment(){
      * Creating adapter to show on RecyclerView and set to it
      */
     override fun initialize() {
-        launch(UI) {
+        GlobalScope.launch {
             PlaylistHelper.instance.initialize().await()
             getMainActivity().loadLibrary()
         }

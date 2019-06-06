@@ -6,6 +6,7 @@ import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import galaxysoftware.musicplayer.activity.MainActivity
 import galaxysoftware.musicplayer.callback.ChangeFragmentListener
 import galaxysoftware.musicplayer.type.FragmentType
 
@@ -22,16 +23,13 @@ abstract class BaseFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setListener(context!!)
+        setHasOptionsMenu(true)
     }
 
     /**
      * Called when Fragment creating the view
      */
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
-        setHasOptionsMenu(true)
-        return inflater.inflate(getLayoutId(), container, false)
-    }
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? = inflater.inflate(getLayoutId(), container, false)
 
     /**
      * Called when the View is created. The initialize() is called on here
@@ -61,7 +59,7 @@ abstract class BaseFragment : Fragment() {
     /**
      * Provide activity
      */
-    fun getMainActivity() = ContextData.instance.mainActivity!!
+    fun getMainActivity() = activity as MainActivity
 
     abstract fun getLayoutId():Int
 

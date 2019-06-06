@@ -3,23 +3,23 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/libraryTab"
+        android:id="@+id/library_navigation"
         android:title="@string/library"
         android:icon="@mipmap/baseline_library_music_black_24"
         app:showAsAction="ifRoom" />
 
     <item
-        android:id="@+id/albumTab"
+        android:id="@+id/album_navigation"
         android:title="@string/album"
         android:icon="@mipmap/baseline_album_black_24"
         app:showAsAction="ifRoom" />
     <item
-        android:id="@+id/artistTab"
+        android:id="@+id/artist_navigation"
         android:title="@string/artist"
         android:icon="@mipmap/baseline_recent_actors_black_24"
         app:showAsAction="ifRoom" />
     <item
-        android:id="@+id/playlistTab"
+        android:id="@+id/playlist_navigation"
         android:title="@string/playlist"
         android:icon="@mipmap/baseline_playlist_play_black_24"
         app:showAsAction="ifRoom" />
